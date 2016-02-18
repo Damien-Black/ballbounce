@@ -56,6 +56,20 @@
     ctx.stroke();
 	};
 
+	//Takes another circle (2d ball) and returns if the circle is colliding with this ball
+	//	This approach means I'll be doing N! calculations for all collisions in ball system
+	//  How big that system is though can be were I reduce the calulations I do.  
+	//		Broad phase: Quad Trees
+	//Returns bool true if balls are colliding
+
+	Ball.prototype.CircleCollision = function(circle){
+		//Currently objects touching exactly are considered colliding.
+		var Xdist = Math.abs(this.x_curr - circle.x_curr);
+		var Ydist = Math.abs(this.y_curr - circle.y_curr);		
+		var distanceOfCenters = Math.sqrt(Math.pow(Xdist,2) + Math.pow(Ydist,2));
+		return (distanceOfCenters <= (this.radius + circle.radius));
+	};
+
 	//Attach ball factory to the window.  Curious what browsers this doesnt work on (Check)
 	global.BallFactory = BallFactory;
 
