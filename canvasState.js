@@ -10,9 +10,10 @@ var State = {
 	dt: 0.2
 };
 State.balls = [];
-State.room = {}; //room in this case is a rectangle
+State.room = {}; //room in this case is a rectangle obj
 State.room.x = 0;
 State.room.y = 0;
+State.room.offset = 0; //Offset will be used for a spinning room
 State.room.width = canvas.width;
 State.room.height = canvas.height;
 

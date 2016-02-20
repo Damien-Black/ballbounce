@@ -55,7 +55,7 @@
 	//  How big that system is though can be were I reduce the calulations I do.  
 	//		Broad phase: Quad Trees
 	//Returns bool true if balls are colliding
-	//In the future return a vector to apply to the ball as a result of the collision
+	//In the future if collision back calc point on ball that collided
 	Ball.prototype.IsCircleCollision = function(circle){
 		//Currently objects touching exactly are considered colliding.
 		var Xdist = Math.abs(this.x_curr - circle.x_curr);
