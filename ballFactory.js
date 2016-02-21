@@ -30,12 +30,12 @@
 	Ball.prototype.updateMotion = function(dt) {
 	        //ddx/ddy signs will reflect direction
 	        this.dy += this.ddy * dt;
-	        this.y_curr += this.dy * dt;
+	        this.y_curr += this.dy * dt + (0.5 * this.ddy * Math.pow(dt,2));
 	        //Below dx is 0 at all times in ball drop down simulation
-	        this.dx -= this.ddx * dt;
+	        this.dx -= this.ddx * dt + 0.5 * this.ddx * Math.pow(dt,2);
 	        this.x_curr += this.dx * dt;
 	        //update Ball Kinetic energy. is this correct form for .5mv^2?  double check its right when dx != 0
-	        this.KineticEnergy = 0.5 * this.m * (this.dx * this.dx + this.dy * this.dy);
+	        this.KineticEnergy = 0.5 * this.m * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
 	        //TODO handle potential energy
 	};
 
@@ -71,7 +71,7 @@
 	//	which will collide first with any wall of the rectangle.  In a normal rectangle (no spinning/offset)
 	//	The 4 points are the points on the circle which lie tangent to the rectangle's sides -- hope that made sense
 	//		In the future when a rectangle rotates I'll have these 4 points rotate with the rectangle
-	Ball.prototype.StationaryRectangleBorderCollision = function (rect) {
+	Ball.prototype.RectangleBorderCollision = function (rect) {
 		var rightSideRect = Math.max(rect.x + rect.width,rect.x);
 		var leftSideRect = Math.min(rect.x + rect.width,rect.x);
 		var bottSideRect = Math.max(rect.y + rect.height, rect.y);
@@ -88,6 +88,7 @@
 		if (this.y_curr + this.radius >= bottSideRect) {collisionStr.push("bottom");}
 		if (this.y_curr - this.radius <= topSideRect) {collisionStr.push("top");}
 		if (collisionStr.length !== 0){
+			console.log(this.y_curr);
 			//Move ball to surface where it collided with
 			//change dir based on collision "wall" str array
 			//	NOTE: moving ball breaks physics.  Better to recalculate what dx or dy was at collision time
@@ -95,7 +96,7 @@
 				if (collisionStr[i] == "right") {this.x = rightSideRect - this.radius; this.dx = -1 * this.dx;}
 				if (collisionStr[i] == "left") {this.x = leftSideRect + this.radius; this.dx = -1 * this.dx;}
 				if (collisionStr[i] == "top") {this.y = topSideRect + this.radius; this.dy = -1 * this.dy;}
-				if (collisionStr[i] == "bottom") {this.y = bottSideRect - this.radius; this.dy = -1 * this.dy;}
+				if (collisionStr[i] == "bottom") {this.y = bottSideRect - 7*this.radius; this.dy = -1 * this.dy;}
 				console.log(this.dy);
 				}
 				//expect ball to bounce higher than it should

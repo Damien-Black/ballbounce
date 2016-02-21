@@ -21,8 +21,8 @@ State.room.height = canvas.height;
     for (var i = 0; i < 5; i++) {
     	var newBall = {};
 		newBall.x = i * 50 + 40;
-		newBall.y = i * 10 + 30;
-		//newBall.y = 70;
+		//newBall.y = i * 10 + 30;
+		newBall.y = 70;
 		newBall.mass = 1;
 		newBall.radius = 20;
 		newBall.color = "red";
@@ -52,7 +52,7 @@ function loop(){
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updateMotion(State.dt);
-	currBall.StationaryRectangleBorderCollision(State.room);
+	currBall.RectangleBorderCollision(State.room);
 	}
 	//Clear Canvas
 	ctx.fillStyle = "rgb(200,200,200)";
