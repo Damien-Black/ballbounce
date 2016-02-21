@@ -13,7 +13,7 @@ State.balls = [];
 State.room = {}; //room in this case is a rectangle obj
 State.room.x = 0;
 State.room.y = 0;
-State.room.offset = 0; //Offset will be used for a spinning room
+State.room.offset = 0; //Offset will be used for a spinning room (in Radians)
 State.room.width = canvas.width;
 State.room.height = canvas.height;
 
@@ -22,12 +22,14 @@ State.room.height = canvas.height;
     	var newBall = {};
 		newBall.x = i * 50 + 40;
 		newBall.y = i * 10 + 30;
+		//newBall.y = 70;
 		newBall.mass = 1;
 		newBall.radius = 20;
 		newBall.color = "red";
 		newBall.ddy = 9.8;
         State.balls.push(BallFactory(newBall));
     }
+    //	Error when dy = 49.00000000000002  , 50.96000000000002 on bounce
 //End test region
 
 //Collisions are elastic.  Preserved E and p
@@ -39,14 +41,9 @@ function collisionHandle(shape1, shape2){
 		//bounce:  Find point of collision for obj1 reverse the velocity vector and apply it
 
 	}
-	else{//Handle an elastic collision}
+	else{
+	//Handle an elastic collision
 }
-
-//Returns point on a circle where collision with a fixed obj first occured
-function findCollisionWithFixedObj(circle){
-	//Find direction of collision
-	//Find point on circle arc that is radius away
-	//See how far iver
 }
 
 
@@ -55,7 +52,7 @@ function loop(){
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updateMotion(State.dt);
-	if (currBall.StationaryRectangleBorderCollision(State.room)) { currBall.y_curr = 40; }
+	currBall.StationaryRectangleBorderCollision(State.room);
 	}
 	//Clear Canvas
 	ctx.fillStyle = "rgb(200,200,200)";
@@ -66,7 +63,6 @@ function loop(){
         ball.DrawBall(ctx);
     }
 }
-
 //Set interval
 setInterval(loop, 50);
 
