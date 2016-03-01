@@ -92,14 +92,30 @@
 			//Move ball to surface where it collided with
 			//change dir based on collision "wall" str array
 			//	NOTE: moving ball breaks physics.  Better to recalculate what dx or dy was at collision time
+			console.log(collisionStr)
 			for (var i = collisionStr.length - 1; i >= 0; i--) {
-				if (collisionStr[i] == "right") {this.x = rightSideRect - this.radius; this.dx = -1 * this.dx;}
-				if (collisionStr[i] == "left") {this.x = leftSideRect + this.radius; this.dx = -1 * this.dx;}
-				if (collisionStr[i] == "top") {this.y = topSideRect + this.radius; this.dy = -1 * this.dy;}
-				if (collisionStr[i] == "bottom") {this.y = bottSideRect - 7*this.radius; this.dy = -1 * this.dy;}
-				console.log(this.dy);
+				var dtCorrection;
+				if (collisionStr[i] == "right") {
+					dtCorrection = getPastWallAdust(this.x_curr,this.ddx,this.dx,rightSideRect);
+					this.x = rightSideRect - this.radius + this.dx*dtCorrection; 
+					this.dx = -1 * this.dx;
 				}
-				//expect ball to bounce higher than it should
+				if (collisionStr[i] == "left") {
+					dtCorrection = getPastWallAdust(this.x_curr,this.ddx,this.dx,leftSideRect);
+					this.x = leftSideRect + this.radius + this.dx*dtCorrection; 
+					this.dx = -1 * this.dx;
+				}
+				if (collisionStr[i] == "top") {
+					dtCorrection = getPastWallAdust(this.y_curr,this.ddy,this.dy,topSideRect);
+					this.y = topSideRect + this.radius + this.dy*dtCorrection;
+				 	this.dy = -1 * this.dy;
+				 }
+				if (collisionStr[i] == "bottom") {
+					dtCorrection = getPastWallAdust(this.y_curr,this.ddy,this.dy,bottSideRect);
+					this.y = bottSideRect - this.radius + this.dy*dtCorrection;
+					this.dy = -1 * this.dy;
+				}
+				}
 			}
 	};
 
@@ -119,6 +135,28 @@
 			if (collStr[i] == "top" || collStr[i] == "bottom") { this.dy = -1 * this.dy;}
 		}
 	};
+
+	//Calculate the amount of time the ball has spent past the wall
+	//	For collision handling purposes
+	function getPastWallAdust(pointPos,accelInit,velInit,wallPos){
+		var A_term = (accelInit / 2);
+		var B_term = velInit;
+		var C_term = wallPos - pointPos;
+		console.log("Point: " + pointPos + "Wall: " + wallPos);
+		return quadSolver(A_term,B_term,C_term);
+	}
+
+	//Helper - Solve a quadratic equation
+	//	Ax2 + Bx + C = 0 is the form that is expected and used
+	//	Since there are 2 solutions I need to return the sensible solution (time is always positive)
+	function quadSolver(A,B,C){
+		root1 = ( -B + Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
+		root2 = ( -B - Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
+		console.log(root1 + 's root 1');
+		console.log(root2 + 's root 2');
+		return Math.max(root1, root2);
+	}
+
 
 	//Attach ball factory to the window.  Curious what browsers this doesnt work on (Check)
 	global.BallFactory = BallFactory;
