@@ -18,7 +18,7 @@ State.room.width = canvas.width;
 State.room.height = canvas.height;
 
 //Test region.  Add 5 ball
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 1; i++) {
     	var newBall = {};
 		newBall.x = i * 50 + 40;
 		//newBall.y = i * 10 + 30;
@@ -51,8 +51,8 @@ function loop(){
 	//change State - Simulation engine call for next time point
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
-	currBall.updateMotion(State.dt);
-	currBall.RectangleBorderCollision(State.room);
+	currBall.updatePosition(State.dt);
+	currBall.RectangleBorderCollision(State.room,State.dt); //dt passing here is suspect
 	}
 	//Clear Canvas
 	ctx.fillStyle = "rgb(200,200,200)";

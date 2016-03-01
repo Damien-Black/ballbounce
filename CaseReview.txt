@@ -1,0 +1,58 @@
+Collision Point FIRST BOUNCE:
+
+Point: 303.2480000000001 Wall: 300
+ballFactory.js:152 0.05157788008926987s root 1
+ballFactory.js:153 -12.851577880089273s root 2
+
+ballFactory.js:142 Point: 303.2480000000001 Wall: 300
+ballFactory.js:152 0.05157788008926987s root 1
+ballFactory.js:153 -12.851577880089273s root 2
+
+ballFactory.js:142 Point: 303.2480000000001 Wall: 300
+ballFactory.js:152 0.05157788008926987s root 1
+ballFactory.js:153 -12.851577880089273s root 2
+
+ballFactory.js:142 Point: 303.2480000000001 Wall: 300
+ballFactory.js:152 0.05157788008926987s root 1
+ballFactory.js:153 -12.851577880089273s root 2
+
+ballFactory.js:142 Point: 303.2480000000001 Wall: 300
+ballFactory.js:152 0.05157788008926987s root 1
+ballFactory.js:153 -12.851577880089273s root 2
+
+Initial points:
+y (point) = 70 + 20
+dt = .2
+
+From initial param expected ground collision is at(seconds?): 6.54654
+From initial param expected pass collision is at(seconds?): .1465s
+From initial param expected "bounce back height"(should be same as initial drop):
+
+
+My Canvas FIRST BOUNCE:
+Correction and bounce at full dt cycles point should "pass" wall line by: 6.6s and 303.444
+Velocity post bounce correction: -62.720392 (Not verified)
+
+Ouptut breakdown
+Point at: 292.86000000000007
+ballFactory.js:37 Point at: 311.0880000000001
+ballFactory.js:135 Point: 311.0880000000001 Wall: 300
+ballFactory.js:145 0.11714243709832461s root 1
+ballFactory.js:146 -19.31714243709831s root 2
+ballFactory.js:37 Point at: 311.0880000000001
+ballFactory.js:135 Point: 311.0880000000001 Wall: 300
+ballFactory.js:145 0.11714243709832461s root 1
+ballFactory.js:146 -19.31714243709831s root 2
+ballFactory.js:37 Point at: 311.0880000000001
+ballFactory.js:135 Point: 311.0880000000001 Wall: 300
+ballFactory.js:145 0.11714243709832461s root 1
+ballFactory.js:146 -19.31714243709831s root 2
+ballFactory.js:37 Point at: 311.0880000000001
+ballFactory.js:135 Point: 311.0880000000001 Wall: 300
+ballFactory.js:145 0.11714243709832461s root 1
+ballFactory.js:146 -19.31714243709831s root 2
+ballFactory.js:37 Point at: 311.0880000000001
+ballFactory.js:135 Point: 311.0880000000001 Wall: 300
+ballFactory.js:145 0.11714243709832461s root 1
+ballFactory.js:146 -19.31714243709831s root 2
+5ballFactory.js:37 Point at: 292.4680000000001
