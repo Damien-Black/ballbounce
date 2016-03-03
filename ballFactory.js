@@ -2,6 +2,8 @@
 	// General Notes:
 	//Double check that anom functions take the name of properties theyre asssigned to in current JS engine versions
 
+	//var t_passed = 0; //DEBUG updating time value overtime
+
 	//radius will always be a positive number
 	var Ball = function( initparams ){
 		this.x_curr = initparams.x;
@@ -26,11 +28,13 @@
 
 	//Simulation engine
 	Ball.prototype.updatePosition = function(dt) {
-	        this.y_curr += (this.dy * dt) + (0.5 * this.ddy * Math.pow(dt,2));
-	        //Below dx is 0 at all times in ball drop down simulation
-	        this.x_curr += (this.dx * dt) + (0.5 * this.ddx * Math.pow(dt,2));
-	        //TODO handle potential energy
-	        //console.log("Point at: " + (this.y_curr + this.radius)); //DEBUG
+		//t_passed += dt; //DEBUG keep track of time passed
+		//console.log("Time passed: " + t_passed);
+        this.y_curr += (this.dy * dt) + (0.5 * this.ddy * Math.pow(dt,2));
+        //Below dx is 0 at all times in ball drop down simulation
+        this.x_curr += (this.dx * dt) + (0.5 * this.ddx * Math.pow(dt,2));
+        //TODO handle potential energy
+        //console.log("Point at: " + (this.y_curr + this.radius)); //DEBUG
 	};
 
 	//Drawing a Ball
@@ -79,29 +83,40 @@
 			//Move ball to surface where it collided with
 			//change dir based on collision "wall" str array
 			//	NOTE: moving ball breaks physics.  Better to recalculate what dx or dy was at collision time
+			var oldX;
+			var oldY;
+			var dtCorrection;
 			for (var i = collisionStr.length - 1; i >= 0; i--) {
-				var dtCorrection;
 				//TODO recorrect velocity in all collision modes
 				if (collisionStr[i] == "right") {
-					dtCorrection = getPastWallAdust(this.x_curr + this.radius,this.ddx,this.dx,rightSideRect);
-					this.x = rightSideRect - this.radius + this.dx*dtCorrection;
+					dtCorrection = getTimePastWallAdust((this.x_curr + this.radius),this.ddx,this.dx,rightSideRect);
+					this.x_curr = rightSideRect - this.radius + this.dx*dtCorrection;
 					this.dx = (-1 * this.dx);
 				}
 				if (collisionStr[i] == "left") {
-					dtCorrection = getPastWallAdust(this.x_curr - this.radius,this.ddx,this.dx,leftSideRect);
-					this.x = leftSideRect + this.radius + this.dx*dtCorrection;
+					dtCorrection = getTimePastWallAdust((this.x_curr - this.radius),this.ddx,this.dx,leftSideRect);
+					this.x_curr = leftSideRect + this.radius + this.dx*dtCorrection;
 					this.dx = -1 * this.dx;
 				}
 				if (collisionStr[i] == "top") {
-					dtCorrection = getPastWallAdust(this.y_curr - this.radius,this.ddy,this.dy,topSideRect);
-					this.y = topSideRect + this.radius + this.dy*dtCorrection;
+					dtCorrection = getTimePastWallAdust((this.y_curr - this.radius),this.ddy,this.dy,topSideRect);
+					this.y_curr = topSideRect + this.radius + this.dy*dtCorrection;
 				 	this.dy = -1 * this.dy;
 				 }
 				if (collisionStr[i] == "bottom") {
+					console.log("Position right before bounce calc: " + (this.y_curr + this.radius));
 					console.log("Velocity right before bounce: " + this.dy);
-					dtCorrection = getPastWallAdust(this.y_curr +this.radius,this.ddy,this.dy,bottSideRect);
-					this.y = bottSideRect - this.radius + this.dy*dtCorrection;
-					this.dy = (-1 * this.dy) + (this.ddy*dtCorrection);
+					oldY = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr;
+					console.log(oldY);
+					var A_term = (this.ddy / 2);
+					var B_term = this.dy;
+					var C_term =  oldY - bottSideRect; //y_curr is wrong
+					var dtWall = quadSolver(A_term,B_term,C_term);
+					var dtPastW = dt - dtWall; //Time ball spent past wall due to canvas limitation
+					var tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
+					this.y_curr = (bottSideRect - this.radius) + (tempV * dtPastW) + (0.5 * this.ddy * Math.pow(dtPastW,2)); //reposistion ball + velocity increase in remaining time
+					this.dy = tempV ;//(this.ddy * dtPastW);
+					console.log("Position right after bounce: " + (this.y_curr + this.radius));
 					console.log("Velocity right after bounce: " + this.dy);
 				}
 				}
@@ -116,8 +131,10 @@
 	};
 
 	Ball.prototype.updateVelocity = function(dt){
+		var olddy = this.dy;
 			this.dx += this.ddx * dt;
 	        this.dy += this.ddy * dt;
+	        if (this.dy*olddy < 0) {console.log(this.y_curr);}
 	        //update Ball Kinetic energy. is this correct form for .5mv^2?  double check its right when dx != 0
 			this.KineticEnergy = 0.5 * this.m * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
 	};
@@ -137,12 +154,12 @@
 	//Calculate new velocity off ball after bounce
 	//	For collision handling purposes
 	// Return [timePastWall, New Velocity after bounce]
-	function getPastWallAdust(pointPos,accelInit,velInit,wallPos){
+	function getTimePastWallAdust(pointPos,accelInit,velInit,wallPos){
 		//calc time of bounce
 		var A_term = (accelInit / 2);
 		var B_term = velInit;
 		var C_term = wallPos - pointPos;
-		//console.log("Point: " + pointPos + " Wall: " + wallPos); //DEBUD
+		//console.log("Point: " + pointPos + " Wall: " + wallPos); //DEBUG
 		return quadSolver(A_term,B_term,C_term);
 	}
 
@@ -152,8 +169,7 @@
 	function quadSolver(A,B,C){
 		root1 = ( -B + Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
 		root2 = ( -B - Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
-		//console.log(root1 + 's root 1'); //DEBUG
-		//console.log(root2 + 's root 2'); //DEBUG
+		console.log('Time missed/past ' + Math.max(root1, root2));
 		return Math.max(root1, root2);
 	}
 

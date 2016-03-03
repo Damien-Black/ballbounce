@@ -20,9 +20,10 @@ State.room.height = canvas.height;
 //Test region.  Add 5 ball
     for (var i = 0; i < 1; i++) {
     	var newBall = {};
-		newBall.x = i * 50 + 40;
+		//newBall.x = i * 50 + 40;
 		//newBall.y = i * 10 + 30;
-		newBall.y = 70;
+		newBall.x = 200;
+		newBall.y = 70; //DEBUG 40 for some reason works correctly, test 70
 		newBall.mass = 1;
 		newBall.radius = 20;
 		newBall.color = "red";
@@ -30,7 +31,7 @@ State.room.height = canvas.height;
         State.balls.push(BallFactory(newBall));
     }
     //	Error when dy = 49.00000000000002  , 50.96000000000002 on bounce
-//End test region
+	//End test region
 
 //Collisions are elastic.  Preserved E and p
 //This method takes 2 shapes and calculates their new x,y velocity then applies it

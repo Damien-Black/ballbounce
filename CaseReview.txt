@@ -25,7 +25,7 @@ y (point) = 70 + 20
 dt = .2
 
 From initial param expected ground collision is at(seconds?): 6.54654
-From initial param expected pass collision is at(seconds?): .1465s
+From initial param expected pass collision is (seconds over?): .1465s
 From initial param expected "bounce back height"(should be same as initial drop):
 
 

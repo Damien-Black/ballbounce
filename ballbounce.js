@@ -23,9 +23,11 @@ function initializeState() {
     return state;
 }
 
+var timeALL = 0;
+
 function update(state, dt) {
     state.totalEnergy = 0;
-
+    timeALL += dt;
     for (var i = state.balls.length - 1; i >= 0; i--) {
         var ball = state.balls[i];
 
@@ -36,6 +38,10 @@ function update(state, dt) {
 
         // But if a collision is about to happen, let's do more math
         if (ball.y + ball.r + deltaY > state.room.height) {
+            console.log("ball " + i);
+            console.log("Time " + timeALL);
+            console.log("Velocity " + ball.dy);
+            console.log(ball.y + deltaY + ball.r);
             // First rewind the change to velocity
             ball.dy += ddy * dt;
 
@@ -55,6 +61,7 @@ function update(state, dt) {
             var h1 = (2 * g * h0 + v0 * v0 - v1 * v1) / (2 * g);
             ball.dy = v1;
             ball.y = state.room.height - ball.r - h1;
+            console.log("Position right after bounce: " + ball.y);
         }
         else {
             ball.y += deltaY;
