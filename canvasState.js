@@ -18,20 +18,30 @@ State.room.width = canvas.width;
 State.room.height = canvas.height;
 
 //Test region.  Add 5 ball
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 100; i++) {
     	var newBall = {};
-		newBall.x = i * 50 + 40;
-		newBall.y = i * 10 + 30;
-		//newBall.x = 200; //DEBUG
-		//newBall.y = 70; //DEBUG 40 for some reason works correctly, test 70
+		//newBall.x = i * 50 + 40;
+		//newBall.y = i * 10 + 30;
+		newBall.x = getRandomInt(0,State.room.width); //DEBUG
+		newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
+		console.log(newBall.x);
+		console.log(newBall.y);
 		newBall.mass = 1;
-		newBall.radius = 20;
+		newBall.radius = 1;
 		newBall.color = "red";
-		newBall.ddy = 9.8;
+		newBall.dx = getRandomInt(-50,50);
+		newBall.dy = getRandomInt(-50,50);
         State.balls.push(BallFactory(newBall));
     }
     //	Error when dy = 49.00000000000002  , 50.96000000000002 on bounce
 	//End test region
+
+// Returns a random integer between min (included) and max (excluded)
+// Using Math.round() will give you a non-uniform distribution!
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
 
 //Collisions are elastic.  Preserved E and p
 //This method takes 2 shapes and calculates their new x,y velocity then applies it

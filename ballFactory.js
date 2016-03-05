@@ -13,8 +13,8 @@
 		this.mass = initparams.mass;
 		this.KineticEnergy = 0;
 		//TODO potential energy (Needs to be aware of external object, maybe don't handle it here)
-		this.dx = 0;
-		this.dy = 0;
+		this.dx = initparams.dx || 0;
+		this.dy = initparams.dy || 0;
 		this.ddx = initparams.ddx || 0; //acceleration on ball X dir (Should ball contain X,Y accel this i think so)
 		this.ddy = initparams.ddy || 0; //acceleration on ball Y dir (Remember canvas coor (x,-y) not normal cartersian)
 	};
@@ -83,44 +83,52 @@
 			//Move ball to surface where it collided with
 			//change dir based on collision "wall" str array
 			//	NOTE: moving ball breaks physics.  Better to recalculate what dx or dy was at collision time
-			var oldX;
-			var oldY;
-			var dtCorrection;
+			var initAxisPos;
+			var dtWall;
+			var dtBounce;
+			var tempV;
 			for (var i = collisionStr.length - 1; i >= 0; i--) {
-				//TODO recorrect velocity in all collision modes
+				//TODO divide by 0 very possible in dtWall calc
+				//	Currently will cheat by putting box not at 0 in x or y
 				if (collisionStr[i] == "right") {
-					dtCorrection = getTimePastWallAdust((this.x_curr + this.radius),this.ddx,this.dx,rightSideRect);
-					this.x_curr = rightSideRect - this.radius + this.dx*dtCorrection;
-					this.dx = (-1 * this.dx);
+					initAxisPos = (-0.5*this.ddx*Math.pow(dt,2)) - (this.dx * dt) + this.x_curr+this.radius;
+					dtWall = (this.ddx) ? quadSolver((this.ddx / 2),this.dx,(initAxisPos - rightSideRect)) : (rightSideRect - initAxisPos) / this.dx;
+					dtBounce = dt - dtWall;
+					tempV = -1 * (this.dx + (this.ddx * dtWall));//velocity right after moment of collision
+					this.x_curr = (rightSideRect - this.radius) + (tempV * dtBounce) + (0.5 * this.ddx * Math.pow(dtBounce,2));
+					this.dx = tempV + (this.ddx * dtBounce);
 				}
 				if (collisionStr[i] == "left") {
-					dtCorrection = getTimePastWallAdust((this.x_curr - this.radius),this.ddx,this.dx,leftSideRect);
-					this.x_curr = leftSideRect + this.radius + this.dx*dtCorrection;
-					this.dx = -1 * this.dx;
+					initAxisPos = (-0.5*this.ddx*Math.pow(dt,2)) - (this.dx * dt) + this.x_curr-this.radius;
+					dtWall = (this.ddx) ? quadSolver((this.ddx / 2),this.dx,(initAxisPos - leftSideRect)) : (leftSideRect - initAxisPos) / this.dx;
+					dtBounce = dt - dtWall;
+					tempV = -1 * (this.dx + (this.ddx * dtWall));//velocity right after moment of collision
+					this.x_curr = (leftSideRect + this.radius) + (tempV * dtBounce) + (0.5 * this.ddx * Math.pow(dtBounce,2));
+					this.dx = tempV + (this.ddx * dtBounce);
 				}
 				if (collisionStr[i] == "top") {
-					dtCorrection = getTimePastWallAdust((this.y_curr - this.radius),this.ddy,this.dy,topSideRect);
-					this.y_curr = topSideRect + this.radius + this.dy*dtCorrection;
-				 	this.dy = -1 * this.dy;
+					initAxisPos = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr-this.radius;
+					dtWall = (this.ddy) ? quadSolver((this.ddy / 2),this.dy,(initAxisPos - topSideRect)) : (topSideRect - initAxisPos) / this.dy;
+					dtBounce = dt - dtWall;
+					tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
+					this.y_curr = (topSideRect + this.radius) + (tempV * dtBounce) + (0.5 * this.ddy * Math.pow(dtBounce,2));
+					this.dy = tempV + (this.ddy * dtBounce);
 				 }
 				if (collisionStr[i] == "bottom") {
-					//console.log("Position right before bounce calc: " + (this.y_curr + this.radius));
-					//console.log("Velocity right before bounce: " + this.dy);
-					oldY = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr+this.radius;
-					var A_term = (this.ddy / 2);
-					var B_term = this.dy;
-					var C_term =  oldY - bottSideRect;
-					var dtWall = quadSolver(A_term,B_term,C_term); //Time to ball shouldve hit wall
-					var dtPastW = dt - dtWall; //Time ball spent past wall due to canvas limitation
-					var tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
-					this.y_curr = (bottSideRect - this.radius) + (tempV * dtPastW) + (0.5 * this.ddy * Math.pow(dtPastW,2)); //reposistion ball + velocity increase in remaining time
-					this.dy = tempV ;//(this.ddy * dtPastW) i should REALLY be adding this;
-					//console.log("Position right after bounce: " + (this.y_curr + this.radius));
-					//console.log("Velocity right after bounce: " + this.dy);
+					initAxisPos = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr+this.radius;
+					dtWall = (this.ddy) ? quadSolver((this.ddy / 2),this.dy,(initAxisPos - bottSideRect)) : (bottSideRect - initAxisPos) / this.dy;
+					dtBounce = dt - dtWall;
+					tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
+					this.y_curr = (bottSideRect - this.radius) + (tempV * dtBounce) + (0.5 * this.ddy * Math.pow(dtBounce,2)); //reposistion ball + velocity increase in remaining time
+					this.dy = tempV + (this.ddy * dtBounce);
 				}
 				}
 			}
-		this.updateVelocity(dt);
+			//update velocity if no collision in X or Y respectivley TODO imporve this section
+			if (!(collisionStr.includes('right') | collisionStr.includes('right'))) {this.dx += this.ddx * dt;}
+			if (!(collisionStr.includes('top') | collisionStr.includes('bottom'))) {this.dy += this.ddy * dt;}
+			//update Ball Kinetic energy. is this correct form for .5mv^2?  double check its right when dx != 0
+			this.KineticEnergy = 0.5 * this.m * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
 	};
 
 	Ball.prototype.getVectorVelocity = function(){
@@ -129,46 +137,13 @@
 		return [magnitude,direction];
 	};
 
-	Ball.prototype.updateVelocity = function(dt){
-		var olddy = this.dy;
-			this.dx += this.ddx * dt;
-	        this.dy += this.ddy * dt;
-	        if (this.dy*olddy < 0) {console.log(this.y_curr);}
-	        //update Ball Kinetic energy. is this correct form for .5mv^2?  double check its right when dx != 0
-			this.KineticEnergy = 0.5 * this.m * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
-	};
-
-	//[OBSOLETE]
-	//collStr can contain more than 1 wall if multiple collisions
-	Ball.prototype.handleCollision = function(collStr,rect){
-		//Move ball to surface where it collided with
-		//change dir based on collision "wall" str array
-		for (var i = collStr.length - 1; i >= 0; i--) {
-			if (collStr[i] == "right" || collStr[i] == "left") {this.dx = -1 * this.dx;}
-			if (collStr[i] == "top" || collStr[i] == "bottom") { this.dy = -1 * this.dy;}
-		}
-	};
-
-	//Calculate the amount of time the ball has spent past the wall
-	//Calculate new velocity off ball after bounce
-	//	For collision handling purposes
-	// Return [timePastWall, New Velocity after bounce]
-	function getTimePastWallAdust(pointPos,accelInit,velInit,wallPos){
-		//calc time of bounce
-		var A_term = (accelInit / 2);
-		var B_term = velInit;
-		var C_term = wallPos - pointPos;
-		//console.log("Point: " + pointPos + " Wall: " + wallPos); //DEBUG
-		return quadSolver(A_term,B_term,C_term);
-	}
-
 	//Helper - Solve a quadratic equation
 	//	Ax2 + Bx + C = 0 is the form that is expected and used
 	//	Since there are 2 solutions I need to return the sensible solution (time is always positive)
 	function quadSolver(A,B,C){
 		root1 = ( -B + Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
 		root2 = ( -B - Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
-		console.log('Time missed/past ' + Math.max(root1, root2));
+		//console.log('Time missed/past ' + Math.max(root1, root2)); //DEBUG
 		return Math.max(root1, root2);
 	}
 
