@@ -18,12 +18,12 @@ State.room.width = canvas.width;
 State.room.height = canvas.height;
 
 //Test region.  Add 5 ball
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 5; i++) {
     	var newBall = {};
-		//newBall.x = i * 50 + 40;
-		//newBall.y = i * 10 + 30;
-		newBall.x = 200;
-		newBall.y = 70; //DEBUG 40 for some reason works correctly, test 70
+		newBall.x = i * 50 + 40;
+		newBall.y = i * 10 + 30;
+		//newBall.x = 200; //DEBUG
+		//newBall.y = 70; //DEBUG 40 for some reason works correctly, test 70
 		newBall.mass = 1;
 		newBall.radius = 20;
 		newBall.color = "red";

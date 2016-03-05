@@ -104,20 +104,19 @@
 				 	this.dy = -1 * this.dy;
 				 }
 				if (collisionStr[i] == "bottom") {
-					console.log("Position right before bounce calc: " + (this.y_curr + this.radius));
-					console.log("Velocity right before bounce: " + this.dy);
-					oldY = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr;
-					console.log(oldY);
+					//console.log("Position right before bounce calc: " + (this.y_curr + this.radius));
+					//console.log("Velocity right before bounce: " + this.dy);
+					oldY = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr+this.radius;
 					var A_term = (this.ddy / 2);
 					var B_term = this.dy;
-					var C_term =  oldY - bottSideRect; //y_curr is wrong
-					var dtWall = quadSolver(A_term,B_term,C_term);
+					var C_term =  oldY - bottSideRect;
+					var dtWall = quadSolver(A_term,B_term,C_term); //Time to ball shouldve hit wall
 					var dtPastW = dt - dtWall; //Time ball spent past wall due to canvas limitation
 					var tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
 					this.y_curr = (bottSideRect - this.radius) + (tempV * dtPastW) + (0.5 * this.ddy * Math.pow(dtPastW,2)); //reposistion ball + velocity increase in remaining time
-					this.dy = tempV ;//(this.ddy * dtPastW);
-					console.log("Position right after bounce: " + (this.y_curr + this.radius));
-					console.log("Velocity right after bounce: " + this.dy);
+					this.dy = tempV ;//(this.ddy * dtPastW) i should REALLY be adding this;
+					//console.log("Position right after bounce: " + (this.y_curr + this.radius));
+					//console.log("Velocity right after bounce: " + this.dy);
 				}
 				}
 			}
