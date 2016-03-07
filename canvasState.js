@@ -3,7 +3,6 @@
 var canvas=$("#canvas")[0];
 var ctx=canvas.getContext("2d");
 //initial state
-// For now balls to be used will be set to 5.  Consider making dynamic and allowing user to choose (For the name portion)
 var State = {
 	TotalKE: 0,
 	TotalPE: 0,
@@ -17,24 +16,31 @@ State.room.offset = 0; //Offset will be used for a spinning room (in Radians)
 State.room.width = canvas.width;
 State.room.height = canvas.height;
 
-//Test region.  Add 5 ball
-    for (var i = 0; i < 100; i++) {
+//Add balls
+    for (i = 0; i < 96; i++) {
     	var newBall = {};
-		//newBall.x = i * 50 + 40;
-		//newBall.y = i * 10 + 30;
 		newBall.x = getRandomInt(0,State.room.width); //DEBUG
 		newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
-		console.log(newBall.x);
-		console.log(newBall.y);
 		newBall.mass = 1;
-		newBall.radius = 1;
+		newBall.radius = 5;
 		newBall.color = "red";
 		newBall.dx = getRandomInt(-50,50);
 		newBall.dy = getRandomInt(-50,50);
         State.balls.push(BallFactory(newBall));
     }
-    //	Error when dy = 49.00000000000002  , 50.96000000000002 on bounce
-	//End test region
+        for (i = 0; i < 4; i++) {
+    	var targetBall = {};
+		targetBall.x = getRandomInt(0,State.room.width); //DEBUG
+		targetBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
+		console.log(targetBall.x);
+		console.log(targetBall.y);
+		targetBall.mass = 1;
+		targetBall.radius = 5;
+		targetBall.color = "green";
+		targetBall.dx = getRandomInt(-50,50);
+		targetBall.dy = getRandomInt(-50,50);
+        State.balls.push(BallFactory(targetBall));
+    }
 
 // Returns a random integer between min (included) and max (excluded)
 // Using Math.round() will give you a non-uniform distribution!
@@ -46,15 +52,38 @@ function getRandomInt(min, max) {
 //Collisions are elastic.  Preserved E and p
 //This method takes 2 shapes and calculates their new x,y velocity then applies it
 //if there is no shape 2 then the collision is assumed to be with a fixed obj
-function collisionHandle(shape1, shape2){
-	shape2 = shape2 || null;
-	if (shape2 === null) {
-		//bounce:  Find point of collision for obj1 reverse the velocity vector and apply it
-
+function collisionHandle(cir1, cir2){
+	var Xdist = Math.abs(cir1.x_curr - cir2.x_curr);
+	var Ydist = Math.abs(cir1.y_curr - cir2.y_curr);
+	var distanceOfCenters = Math.sqrt(Math.pow(Xdist,2) + Math.pow(Ydist,2));
+	if (distanceOfCenters <= (cir1.radius + cir2.radius)) {
+		cir1.ResolveCollision(cir2);
 	}
-	else{
-	//Handle an elastic collision
 }
+
+//Recursive function to go through all ball pairing and check for collision
+// TODO maybe instead of array use .next so fx is cleaner and easier to read
+//	...maybe
+function collisionBallToBallSystem(){
+	var elemNum = elemNum || 0;
+	var elemCompare = elemCompare || 1;
+	if (elemNum == State.balls.length - 1) {
+	 	return;
+	 } else {
+	 	collisionHandle(State.balls[elemNum],State.balls[elemCompare]);
+	 	return collisionBallToBallSystem(elemNum,elemCompare); //does not look kosher, Closure plz
+	 	}
+//BUT seriously
+// for (int i = 0; i < State.balls.length-1; i++) //skip last ball
+// {  
+//     for (int j = i + 1; j < State.balls.length; j++)
+//     {  
+//         if (balls[i].IsCircleCollision(balls[j]))  
+//         {
+//             balls[i].resolveCollision(balls[j]);
+//         }
+//     }
+// }
 }
 
 
@@ -64,7 +93,15 @@ function loop(){
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
 	currBall.RectangleBorderCollision(State.room,State.dt); //dt passing here is suspect
+	for (j = i + 1; j < State.balls.length; j++)
+    {  
+        if (currBall.IsCircleCollision(State.balls[j]))  
+        {
+            currBall.ResolveCollision(State.balls[j],State.dt);
+        }
+    }
 	}
+
 	//Clear Canvas
 	ctx.fillStyle = "rgb(200,200,200)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
