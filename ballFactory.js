@@ -19,6 +19,7 @@
 		this.ddy = initparams.ddy || 0; //acceleration on ball Y dir (Remember canvas coor (x,-y) not normal cartersian)
 		this.endX = initparams.endX || 0; //target ball X
 		this.endY = initparams.endY || 0; //target ball Y
+		this.isSpecial = initparams.isSpecial || false;
 	};
 
 	//Will be exposed to the browser.
@@ -33,10 +34,20 @@
 		//t_passed += dt; //DEBUG keep track of time passed
 		//console.log("Time passed: " + t_passed);
         this.y_curr += (this.dy * dt) + (0.5 * this.ddy * Math.pow(dt,2));
-        //Below dx is 0 at all times in ball drop down simulation
         this.x_curr += (this.dx * dt) + (0.5 * this.ddx * Math.pow(dt,2));
         //TODO handle potential energy
         //console.log("Point at: " + (this.y_curr + this.radius)); //DEBUG
+	};
+
+	Ball.prototype.gotoEndGoal = function() {
+	var colors = ["blue","green","yellow","Gold","HotPink","Lime"];
+	this.color = colors[Math.floor(Math.random() * ((colors.length-1)))]; //get a random color. has to be a better way
+	//Move ball a 10th of the distance to the endgoal
+	var xDistToGoal = this.endX - this.x_curr;
+	var yDistToGoal = this.endy - this.y_curr;
+	console.log(xDistToGoal);
+	this.x_curr += (xDistToGoal / 10);
+	//this.y_curr += yDistToGoal / 10;
 	};
 
 	//Drawing a Ball

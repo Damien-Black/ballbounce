@@ -6,7 +6,8 @@ var ctx=canvas.getContext("2d");
 var State = {
 	TotalKE: 0,
 	TotalPE: 0,
-	dt: 0.2
+	dt: 0.2,
+	totalTimePassed: 0
 };
 State.balls = [];
 State.room = {}; //room in this case is a rectangle obj
@@ -22,7 +23,7 @@ State.room.height = canvas.height;
 		newBall.x = getRandomInt(0,State.room.width); //DEBUG
 		newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
 		newBall.mass = 1;
-		newBall.radius = 5;
+		newBall.radius = 10;
 		newBall.color = "red";
 		newBall.dx = getRandomInt(-50,50);
 		newBall.dy = getRandomInt(-50,50);
@@ -35,10 +36,13 @@ State.room.height = canvas.height;
 		console.log(targetBall.x);
 		console.log(targetBall.y);
 		targetBall.mass = 1;
-		targetBall.radius = 5;
+		targetBall.radius = 10;
 		targetBall.color = "green";
 		targetBall.dx = getRandomInt(-50,50);
 		targetBall.dy = getRandomInt(-50,50);
+		targetBall.endX = 60;
+		targetBall.endY = 60;
+		targetBall.isSpecial = true;
         State.balls.push(BallFactory(targetBall));
     }
 
@@ -61,47 +65,26 @@ function collisionHandle(cir1, cir2){
 	}
 }
 
-//Recursive function to go through all ball pairing and check for collision
-// TODO maybe instead of array use .next so fx is cleaner and easier to read
-//	...maybe
-function collisionBallToBallSystem(){
-	var elemNum = elemNum || 0;
-	var elemCompare = elemCompare || 1;
-	if (elemNum == State.balls.length - 1) {
-	 	return;
-	 } else {
-	 	collisionHandle(State.balls[elemNum],State.balls[elemCompare]);
-	 	return collisionBallToBallSystem(elemNum,elemCompare); //does not look kosher, Closure plz
-	 	}
-//BUT seriously
-// for (int i = 0; i < State.balls.length-1; i++) //skip last ball
-// {  
-//     for (int j = i + 1; j < State.balls.length; j++)
-//     {  
-//         if (balls[i].IsCircleCollision(balls[j]))  
-//         {
-//             balls[i].resolveCollision(balls[j]);
-//         }
-//     }
-// }
-}
-
-
 function loop(){
 	//change State - Simulation engine call for next time point
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
 	currBall.RectangleBorderCollision(State.room,State.dt); //dt passing here is suspect
-	for (j = i + 1; j < State.balls.length; j++)
-    {  
+	if (State.totalTimePassed > 10) { //40 is good
+		if (currBall.isSpecial) {
+		currBall.gotoEndGoal();
+		}
+	}
+	for (j = i + 1; j < State.balls.length; j++){
         if (currBall.IsCircleCollision(State.balls[j]))  
         {
-            currBall.ResolveCollision(State.balls[j],State.dt);
+            currBall.ResolveCollision(State.balls[j],State.dt); //Not using dt yet
         }
-    }
-	}
+    } //Handle ball to ball collisions
 
+	}
+	//Pulse target Balls to end locations
 	//Clear Canvas
 	ctx.fillStyle = "rgb(200,200,200)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -110,6 +93,7 @@ function loop(){
         var ball = State.balls[i];
         ball.DrawBall(ctx);
     }
+    State.totalTimePassed += State.dt;
 }
 //Set interval
 setInterval(loop, 50);
