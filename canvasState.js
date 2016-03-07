@@ -18,33 +18,98 @@ State.room.width = canvas.width;
 State.room.height = canvas.height;
 
 //Add balls
-    for (i = 0; i < 96; i++) {
-    	var newBall = {};
-		newBall.x = getRandomInt(0,State.room.width); //DEBUG
-		newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
-		newBall.mass = 1;
-		newBall.radius = 10;
-		newBall.color = "red";
-		newBall.dx = getRandomInt(-50,50);
-		newBall.dy = getRandomInt(-50,50);
-        State.balls.push(BallFactory(newBall));
-    }
-        for (i = 0; i < 4; i++) {
-    	var targetBall = {};
-		targetBall.x = getRandomInt(0,State.room.width); //DEBUG
-		targetBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
-		console.log(targetBall.x);
-		console.log(targetBall.y);
+for (i = 0; i < 25; i++) {
+	var newBall = {};
+	newBall.x = getRandomInt(0,State.room.width); //DEBUG
+	newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
+	newBall.mass = 1;
+	newBall.radius = 10;
+	newBall.color = "red";
+	newBall.dx = getRandomInt(-25,25);
+	newBall.dy = getRandomInt(-25,25);
+    State.balls.push(BallFactory(newBall));
+}
+
+//Get letter end point position
+var letterPositions = makeLetter("AA",[75,75]);
+console.log(letterPositions);
+
+//target balls for making a letter
+// how many balls needed
+// end position of each ball [x's] and [y's]
+//TODO have abetter way of making letters, right now too hard to read
+for (var i = 0 ; i < letterPositions[0].length; i++) {
+	var currletterX = letterPositions[0][i];
+	for (var j = currletterX.length - 1; j >= 0; j--) {
+		var targetBall = {};
+		targetBall.x = getRandomInt(0,State.room.width);
+		targetBall.y = getRandomInt(0,State.room.height);
 		targetBall.mass = 1;
 		targetBall.radius = 10;
 		targetBall.color = "green";
-		targetBall.dx = getRandomInt(-50,50);
-		targetBall.dy = getRandomInt(-50,50);
-		targetBall.endX = 60;
-		targetBall.endY = 60;
+		targetBall.dx = getRandomInt(-25,25);
+		targetBall.dy = getRandomInt(-25,25);
+		targetBall.endX = currletterX[j]; //since I'm already looking at the X value
+		targetBall.endY = letterPositions[1][i][j];
 		targetBall.isSpecial = true;
-        State.balls.push(BallFactory(targetBall));
-    }
+	    State.balls.push(BallFactory(targetBall));
+	}
+	console.log('letter #' + i);
+	console.log('EndX: ' + letterPositions[0][i]);
+	console.log('EndY: ' + letterPositions[1][i]);
+}
+
+//     for (i = 0; i < 4; i++) {
+// 	var targetBall = {};
+// 	targetBall.x = getRandomInt(0,State.room.width); //DEBUG
+// 	targetBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
+// 	console.log(targetBall.x);
+// 	console.log(targetBall.y);
+// 	targetBall.mass = 2;//heavier
+// 	targetBall.radius = 20;
+// 	targetBall.color = "red";
+// 	targetBall.dx = getRandomInt(-50,50);
+// 	targetBall.dy = getRandomInt(-50,50);
+// 	targetBall.endX = getRandomInt(20,State.room.width);
+// 	targetBall.endY = getRandomInt(20,State.room.height);
+// 	targetBall.isSpecial = true;
+//     State.balls.push(BallFactory(targetBall));
+// }
+
+//Returns [x],[y] values needed to create a letter
+//starting corner is the upperleft [x,y] coordinates for writing the letter
+//	Conceptual: just have a set letter (based on 0,0) and update coordinates based on new starting corner
+//		Could make recursivel and call until letters is empty
+//		assuming left to right writing
+//TODO ensure string will fit on Canvas
+function makeLetter(letters,startingCorner,resultsX,resultsY){
+	var coordinatesX = [];
+	var coordinatesY = [];
+	var endCoord = [0,0];
+	resultsX = resultsX || [];
+	resultsY = resultsY || [];
+	var currLetter = letters.charAt(0);
+	console.log('currLetter = ' + currLetter);
+
+	if (currLetter == "A") {
+		coordinatesX = [70,35,70,105,20,110];
+		coordinatesY = [0,60,60,60,130,130];
+	}
+	for (var i = coordinatesX.length - 1; i >= 0; i--) {
+		coordinatesX[i] += startingCorner[0];
+		coordinatesY[i] += startingCorner[1];
+	}
+	resultsX.push(coordinatesX);
+	resultsY.push(coordinatesY);
+	endCoord[0] = Math.max.apply(null,coordinatesX) + 30; //the 30 is a 'space' between letters
+	endCoord[1] = Math.min.apply(null,coordinatesY);
+	console.log('End Coorders are: ' + endCoord);
+	if (letters.length === 1) {
+		return [resultsX,resultsY];} else{
+		console.log("Substr: "+ letters.substring(1));
+		return makeLetter(letters.substring(1), endCoord,resultsX,resultsY);
+	}
+}
 
 // Returns a random integer between min (included) and max (excluded)
 // Using Math.round() will give you a non-uniform distribution!
@@ -73,11 +138,11 @@ function loop(){
 	currBall.RectangleBorderCollision(State.room,State.dt); //dt passing here is suspect
 	if (State.totalTimePassed > 10) { //40 is good
 		if (currBall.isSpecial) {
-		currBall.gotoEndGoal();
+		currBall.gotoEndGoal(State.totalTimePassed);
 		}
 	}
 	for (j = i + 1; j < State.balls.length; j++){
-        if (currBall.IsCircleCollision(State.balls[j]))  
+        if (currBall.IsCircleCollision(State.balls[j]))
         {
             currBall.ResolveCollision(State.balls[j],State.dt); //Not using dt yet
         }

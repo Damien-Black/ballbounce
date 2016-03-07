@@ -39,15 +39,20 @@
         //console.log("Point at: " + (this.y_curr + this.radius)); //DEBUG
 	};
 
-	Ball.prototype.gotoEndGoal = function() {
-	var colors = ["blue","green","yellow","Gold","HotPink","Lime"];
-	this.color = colors[Math.floor(Math.random() * ((colors.length-1)))]; //get a random color. has to be a better way
-	//Move ball a 10th of the distance to the endgoal
-	var xDistToGoal = this.endX - this.x_curr;
-	var yDistToGoal = this.endy - this.y_curr;
-	console.log(xDistToGoal);
-	this.x_curr += (xDistToGoal / 10);
-	//this.y_curr += yDistToGoal / 10;
+	Ball.prototype.gotoEndGoal = function(totalTime) {
+		var velocityMultiplier = (totalTime < 50) ? totalTime * 0.1 : 5; //limit time multiplier to 100 to avoid velocities exploding out
+		console.log(totalTime);
+		var colors = ["blue","green","yellow","Gold","HotPink","Lime"];
+		this.color = colors[Math.floor(Math.random() * ((colors.length-1)))]; //get a random color. has to be a better way
+		if (this.mass < 400) {this.mass += 5;}//ball gets more massive as it approaches end goal
+		//Force balls velocity towards end goal
+		if (totalTime > 70) {
+			if (Math.random() > 0.7) {this.x_curr = this.endX; this.y_curr = this.endY;}
+		}
+		var xDistToGoal = this.endX - this.x_curr;
+		var yDistToGoal = this.endY - this.y_curr;
+		this.dx = (xDistToGoal) * velocityMultiplier;
+		this.dy = (yDistToGoal / 10) * velocityMultiplier;
 	};
 
 	//Drawing a Ball
@@ -72,7 +77,7 @@
 		var Xdist = Math.abs(this.x_curr - circle.x_curr);
 		var Ydist = Math.abs(this.y_curr - circle.y_curr);
 		var distanceOfCenters = Math.sqrt(Math.pow(Xdist,2) + Math.pow(Ydist,2));
-		return (distanceOfCenters <= (this.radius + circle.radius)); 
+		return (distanceOfCenters <= (this.radius + circle.radius));
 		//Alternativeley avoid sqrt if thats an issue/performance
 		//var distanceOfCenters = (Math.pow(Xdist,2) + Math.pow(Ydist,2))
 		//return (distanceOfCenters <= Math.pow(this.radius + circle.radius)),2);
@@ -84,13 +89,13 @@
 	//	This portion is cheaty and breaks physics.  In future I need to take dt into account
 	//	And adjust accordingly to the time step
 	Ball.prototype.ResolveCollision = function(circle,dt){
-		//find actual collision point, 
+		//find actual collision point,
 		//	this will do for now, but real point will take velocity and direction into account
 		//	Use collision point to see how far a balls predicted collision point has progressed
 		//		to find dtPostCollision
-		// var collisionPointX = 
+		// var collisionPointX =
  	// 		((this.x_curr * circle.radius) + (circle.x_curr * this.radius)) / (this.radius + circle.radius);
-		// var collisionPointY = 
+		// var collisionPointY =
  	// 		((this.y_curr * circle.radius) + (circle.y_curr * this.radius)) / (this.radius + circle.radius);
  		//TODO See how far a ball progressed past the collision point and use dt to find dtCollision
  		var centerDistX = this.x_curr - circle.x_curr;
@@ -115,7 +120,7 @@
             circle.dx -= collisionWeightB * xCollision;
             circle.dy -= collisionWeightB * yCollision;
         }
-        //Alternate way not using vector math, still think reposition is necessary
+        //Alternate way not using vector math, still think reposition is necessary, results is "ball sticking"
  	// 	//Find new ball positions post collision
  	// 	var newVelX1 = (this.dx * (this.mass - circle.mass) + (2 * circle.mass * circle.dx)) / (this.mass + circle.mass);
 		// var newVelY1 = (this.dy * (this.mass - circle.mass) + (2 * circle.mass * circle.dy)) / (this.mass + circle.mass);
