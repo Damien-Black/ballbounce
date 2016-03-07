@@ -27,11 +27,12 @@ for (i = 0; i < 25; i++) {
 	newBall.color = "red";
 	newBall.dx = getRandomInt(-25,25);
 	newBall.dy = getRandomInt(-25,25);
+	//newBall.ddy = 9.8;
     State.balls.push(BallFactory(newBall));
 }
 
 //Get letter end point position
-var letterPositions = makeLetter("AA",[75,75]);
+var letterPositions = makeLetter("BAD",[75,75]);
 console.log(letterPositions);
 
 //target balls for making a letter
@@ -85,6 +86,8 @@ for (var i = 0 ; i < letterPositions[0].length; i++) {
 function makeLetter(letters,startingCorner,resultsX,resultsY){
 	var coordinatesX = [];
 	var coordinatesY = [];
+	var hLet = 120; //max height a letter can take
+	var wLet = 90; //max width a letter can take
 	var endCoord = [0,0];
 	resultsX = resultsX || [];
 	resultsY = resultsY || [];
@@ -92,8 +95,16 @@ function makeLetter(letters,startingCorner,resultsX,resultsY){
 	console.log('currLetter = ' + currLetter);
 
 	if (currLetter == "A") {
-		coordinatesX = [70,35,70,105,20,110];
-		coordinatesY = [0,60,60,60,130,130];
+		coordinatesX = [0.55*wLet,0.16*wLet,0.55*wLet,85,0,wLet];
+		coordinatesY = [0,0.5*hLet,0.5*hLet,0.5*hLet,hLet,hLet];
+	}
+	if (currLetter == "B") {
+		coordinatesX = [0,0,0,0.5*wLet,0.5*wLet,0.5*wLet,wLet,wLet];
+		coordinatesY = [0,0.5* hLet,hLet,0,0.5* hLet,hLet,0.25*hLet,0.75*hLet];
+	}
+	if (currLetter == "D") {
+		coordinatesX = [0,0,0,0.5*wLet,0.5*wLet,wLet,wLet];
+		coordinatesY = [0,0.5* hLet,hLet,0,hLet,0.25*hLet,0.75*hLet];
 	}
 	for (var i = coordinatesX.length - 1; i >= 0; i--) {
 		coordinatesX[i] += startingCorner[0];
@@ -101,7 +112,7 @@ function makeLetter(letters,startingCorner,resultsX,resultsY){
 	}
 	resultsX.push(coordinatesX);
 	resultsY.push(coordinatesY);
-	endCoord[0] = Math.max.apply(null,coordinatesX) + 30; //the 30 is a 'space' between letters
+	endCoord[0] = Math.max.apply(null,coordinatesX) + 60; //the 60 is a 'space' between letters
 	endCoord[1] = Math.min.apply(null,coordinatesY);
 	console.log('End Coorders are: ' + endCoord);
 	if (letters.length === 1) {

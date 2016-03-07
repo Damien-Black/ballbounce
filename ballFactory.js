@@ -31,6 +31,10 @@
 
 	//Simulation engine
 	Ball.prototype.updatePosition = function(dt) {
+		//Cap velocity at 40
+		this.color = ((this.dx > 40) | (this.dy > 40)) ? "green" : "red";
+		this.dx = (this.dx > 40) ? 40 : this.dx;
+		this.dy = (this.dy > 40) ? 40 : this.dy;
 		//t_passed += dt; //DEBUG keep track of time passed
 		//console.log("Time passed: " + t_passed);
         this.y_curr += (this.dy * dt) + (0.5 * this.ddy * Math.pow(dt,2));
@@ -45,12 +49,12 @@
 		var colors = ["blue","green","yellow","Gold","HotPink","Lime"];
 		this.color = colors[Math.floor(Math.random() * ((colors.length-1)))]; //get a random color. has to be a better way
 		if (this.mass < 400) {this.mass += 5;}//ball gets more massive as it approaches end goal
-		//Force balls velocity towards end goal
-		if (totalTime > 70) {
-			if (Math.random() > 0.7) {this.x_curr = this.endX; this.y_curr = this.endY;}
-		}
+		//Force balls velocity towards end goal, force position after some time
 		var xDistToGoal = this.endX - this.x_curr;
 		var yDistToGoal = this.endY - this.y_curr;
+		if (totalTime > 70) {
+			if (Math.random() > 0.7) {this.x_curr += (xDistToGoal/3) ; this.y_curr += (yDistToGoal/3);}
+		}
 		this.dx = (xDistToGoal) * velocityMultiplier;
 		this.dy = (yDistToGoal / 10) * velocityMultiplier;
 	};
