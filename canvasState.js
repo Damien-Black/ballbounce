@@ -32,14 +32,15 @@ for (i = 0; i < 25; i++) {
 }
 
 //Get letter end point position
-var letterPositions = makeLetter("BAD",[75,75]);
+var letterPositions = makeLetter("",[175,300]);
 console.log(letterPositions);
 
 //target balls for making a letter
 // how many balls needed
 // end position of each ball [x's] and [y's]
 //TODO have abetter way of making letters, right now too hard to read
-for (var i = 0 ; i < letterPositions[0].length; i++) {
+if (letterPositions) {
+	for (var i = 0 ; i < letterPositions[0].length; i++) {
 	var currletterX = letterPositions[0][i];
 	for (var j = currletterX.length - 1; j >= 0; j--) {
 		var targetBall = {};
@@ -59,23 +60,8 @@ for (var i = 0 ; i < letterPositions[0].length; i++) {
 	console.log('EndX: ' + letterPositions[0][i]);
 	console.log('EndY: ' + letterPositions[1][i]);
 }
+}
 
-//     for (i = 0; i < 4; i++) {
-// 	var targetBall = {};
-// 	targetBall.x = getRandomInt(0,State.room.width); //DEBUG
-// 	targetBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
-// 	console.log(targetBall.x);
-// 	console.log(targetBall.y);
-// 	targetBall.mass = 2;//heavier
-// 	targetBall.radius = 20;
-// 	targetBall.color = "red";
-// 	targetBall.dx = getRandomInt(-50,50);
-// 	targetBall.dy = getRandomInt(-50,50);
-// 	targetBall.endX = getRandomInt(20,State.room.width);
-// 	targetBall.endY = getRandomInt(20,State.room.height);
-// 	targetBall.isSpecial = true;
-//     State.balls.push(BallFactory(targetBall));
-// }
 
 //Returns [x],[y] values needed to create a letter
 //starting corner is the upperleft [x,y] coordinates for writing the letter
@@ -84,6 +70,7 @@ for (var i = 0 ; i < letterPositions[0].length; i++) {
 //		assuming left to right writing
 //TODO ensure string will fit on Canvas
 function makeLetter(letters,startingCorner,resultsX,resultsY){
+	if (letters === "") {return;} //handle empty string
 	var coordinatesX = [];
 	var coordinatesY = [];
 	var hLet = 120; //max height a letter can take
@@ -141,8 +128,24 @@ function collisionHandle(cir1, cir2){
 	}
 }
 
+function DrawRect(){
+	ctx.beginPath();
+	ctx.fillStyle = "rgb(200,200,200)";
+	ctx.lineWidth="6";
+	ctx.strokeStyle="red";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	//Looks cool, but clear canvas
+	ctx.beginPath();
+	ctx.lineWidth="6";
+	ctx.strokeStyle="red";
+    ctx.rect(0, 0, canvas.width, canvas.height);
+	ctx.stroke();
+}
+
 function loop(){
 	//change State - Simulation engine call for next time point
+	State.offset += 10; //increase offset by 10 radians
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
@@ -162,8 +165,7 @@ function loop(){
 	}
 	//Pulse target Balls to end locations
 	//Clear Canvas
-	ctx.fillStyle = "rgb(200,200,200)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+	DrawRect();
 	//Redraw - Redraw all balls
     for (i = State.balls.length - 1; i >= 0; i--) {
         var ball = State.balls[i];
