@@ -1,6 +1,6 @@
 (function(global){
 	// General Notes:
-	//Double check that anom functions take the name of properties theyre asssigned to in current JS engine versions
+	//Check that anom functions take the name of properties theyre asssigned to in current JS engine versions
 
 	//var t_passed = 0; //DEBUG updating time value overtime
 
@@ -89,18 +89,11 @@
 
 	//Shoutout: http://gamedevelopment.tutsplus.com/tutorials/when-worlds-collide-simulating-circle-circle-collisions--gamedev-769
 	//Shoutout: http://gamedev.stackexchange.com/questions/20516/ball-collisions-sticking-together
+	//Shoutout: https://blogs.msdn.microsoft.com/faber/2013/01/09/elastic-collisions-of-balls/
 	//	Saving a brothers life out here
 	//	This portion is cheaty and breaks physics.  In future I need to take dt into account
 	//	And adjust accordingly to the time step
 	Ball.prototype.ResolveCollision = function(circle,dt){
-		//find actual collision point,
-		//	this will do for now, but real point will take velocity and direction into account
-		//	Use collision point to see how far a balls predicted collision point has progressed
-		//		to find dtPostCollision
-		// var collisionPointX =
- 	// 		((this.x_curr * circle.radius) + (circle.x_curr * this.radius)) / (this.radius + circle.radius);
-		// var collisionPointY =
- 	// 		((this.y_curr * circle.radius) + (circle.y_curr * this.radius)) / (this.radius + circle.radius);
  		//TODO See how far a ball progressed past the collision point and use dt to find dtCollision
  		var centerDistX = this.x_curr - circle.x_curr;
  		var centerDistY = this.y_curr - circle.y_curr;
@@ -124,23 +117,6 @@
             circle.dx -= collisionWeightB * xCollision;
             circle.dy -= collisionWeightB * yCollision;
         }
-        //Alternate way not using vector math, still think reposition is necessary, results is "ball sticking"
- 	// 	//Find new ball positions post collision
- 	// 	var newVelX1 = (this.dx * (this.mass - circle.mass) + (2 * circle.mass * circle.dx)) / (this.mass + circle.mass);
-		// var newVelY1 = (this.dy * (this.mass - circle.mass) + (2 * circle.mass * circle.dy)) / (this.mass + circle.mass);
-		// var newVelX2 = (circle.dx * (circle.mass - this.mass) + (2 * this.mass * this.dx)) / (this.mass + circle.mass);
-		// var newVelY2 = (circle.dy * (circle.mass - this.mass) + (2 * this.mass * this.dy)) / (this.mass + circle.mass);
-		// //reposition balls and update velocity
-		// //	Reposition balls at collisionPoint (X,Y) and progress in their directions dtCollision
-		// //	Sticking does occur if correction does not move balls apart
-		// this.x = this.x + newVelX1;
-		// this.y = this.y + newVelY1;
-		// circle.x = circle.x + newVelX2;
-		// circle.y = circle.y + newVelY2;
-		// this.dx = newVelX1;
-		// this.dy = newVelY1;
-		// circle.dx = newVelX2;
-		// circle.dy = newVelY2;
 	};
 
 	//Take a rect and see if the the ball is colliding with any of botders
@@ -208,7 +184,7 @@
 			//update velocity if no collision in X or Y respectivley TODO imporve this section
 			if (!(collisionStr.includes('right') | collisionStr.includes('right'))) {this.dx += this.ddx * dt;}
 			if (!(collisionStr.includes('top') | collisionStr.includes('bottom'))) {this.dy += this.ddy * dt;}
-			//update Ball Kinetic energy. is this correct form for .5mv^2?  double check its right when dx != 0
+			//update Ball Kinetic energy. is this correct form for .5mv^2?  check its right when dx != 0
 			this.KineticEnergy = 0.5 * this.m * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
 	};
 
@@ -227,6 +203,14 @@
 		root2 = ( -B - Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
 		//console.log('Time missed/past ' + Math.max(root1, root2)); //DEBUG
 		return Math.max(root1, root2);
+	}
+
+	//Takes dx and a dy and returns a vector array
+	// NOT USED
+	function createVector(dx,dy){
+		var magnitude = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+		var direction =Math.atan(dy/dx);
+		return [magnitude,direction];
 	}
 
 

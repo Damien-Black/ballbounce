@@ -4,6 +4,7 @@ var canvas=$("#canvas")[0];
 var ctx=canvas.getContext("2d");
 //initial state
 var State = {
+
 	TotalKE: 0,
 	TotalPE: 0,
 	dt: 0.2,
@@ -11,28 +12,30 @@ var State = {
 };
 State.balls = [];
 State.room = {}; //room in this case is a rectangle obj
-State.room.x = 0;
-State.room.y = 0;
 State.room.offset = 0; //Offset will be used for a spinning room (in Radians)
-State.room.width = canvas.width;
-State.room.height = canvas.height;
+State.room.width = canvas.width * 0.70;
+State.room.height = canvas.height * 0.70;
+State.room.x = (canvas.width - State.room.width) / 2;
+State.room.y = (canvas.height - State.room.height) / 2;
 
 //Add balls
-for (i = 0; i < 25; i++) {
-	var newBall = {};
-	newBall.x = getRandomInt(0,State.room.width); //DEBUG
-	newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
-	newBall.mass = 1;
-	newBall.radius = 10;
-	newBall.color = "red";
-	newBall.dx = getRandomInt(-25,25);
-	newBall.dy = getRandomInt(-25,25);
-	//newBall.ddy = 9.8;
-    State.balls.push(BallFactory(newBall));
-}
+// for (i = 0; i < 25; i++) {
+// 	var newBall = {};
+// 	newBall.x = getRandomInt(0,State.room.width); //DEBUG
+// 	newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
+// 	newBall.mass = 1;
+// 	newBall.radius = 10;
+// 	newBall.color = "red";
+// 	newBall.dx = getRandomInt(-25,25);
+// 	newBall.dy = getRandomInt(-25,25);
+// 	//newBall.ddy = 9.8;
+//     State.balls.push(BallFactory(newBall));
+// }
+
+//TEST for rotating scenario
 
 //Get letter end point position
-var letterPositions = makeLetter("",[175,300]);
+var letterPositions = makeLetter("",[175+State.room.startX,300 + State.room.startY]);
 console.log(letterPositions);
 
 //target balls for making a letter
@@ -62,6 +65,19 @@ if (letterPositions) {
 }
 }
 
+//TEST for rotating scenario
+for (var k = 0; k < 4; k++) {
+	var newBall = {};
+	newBall.x = getRandomInt(300,400);
+	newBall.y = getRandomInt(300,400);
+	newBall.mass = 1;
+	newBall.radius = 20;
+	newBall.color = "red";
+	newBall.dx = getRandomInt(-30,30);
+	newBall.dy = getRandomInt(-30,30);
+	//newBall.ddy = 9.8;
+    State.balls.push(BallFactory(newBall));
+}
 
 //Returns [x],[y] values needed to create a letter
 //starting corner is the upperleft [x,y] coordinates for writing the letter
@@ -135,11 +151,11 @@ function DrawRect(){
 	ctx.strokeStyle="red";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-	//Looks cool, but clear canvas
+	//Draw Rect in center of the canvas
 	ctx.beginPath();
 	ctx.lineWidth="6";
 	ctx.strokeStyle="red";
-    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.rect(State.room.x, State.room.y, State.room.width, State.room.height);
 	ctx.stroke();
 }
 
