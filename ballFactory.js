@@ -11,11 +11,10 @@
 		this.color = initparams.color;
 		this.radius = initparams.radius;
 		this.mass = initparams.mass;
-		this.KineticEnergy = 0;
 		//TODO potential energy (Needs to be aware of external object, maybe don't handle it here)
 		this.dx = initparams.dx || 0;
 		this.dy = initparams.dy || 0;
-		this.ddx = initparams.ddx || 0; //acceleration on ball X dir (Should ball contain X,Y accel this i think so)
+		this.ddx = initparams.ddx || 0; //acceleration on ball X dir
 		this.ddy = initparams.ddy || 0; //acceleration on ball Y dir (Remember canvas coor (x,-y) not normal cartersian)
 		this.endX = initparams.endX || 0; //target ball X
 		this.endY = initparams.endY || 0; //target ball Y
@@ -27,6 +26,12 @@
 	var BallFactory = function (ballinit){
 		//TODO validate init params
 		return new Ball(ballinit);
+	};
+
+	//Calculate KE of the ball
+	Ball.prototype.KineticEnergy = function(){
+		var KE = 0.5 * this.mass * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
+		return KE;
 	};
 
 	//Simulation engine
@@ -118,6 +123,53 @@
             circle.dy -= collisionWeightB * yCollision;
         }
 	};
+	//Alternate collision handling
+	Ball.prototype.ResolveCollision2 = function(circle,dt){
+ 		var centerDistX = this.x_curr - circle.x_curr;
+ 		var centerDistY = this.y_curr - circle.y_curr;
+ 		var phi = Math.arctan(centerDistY/centerDistX);
+ 		var theta1 = this.getVectorVelocity[1];
+ 		var theta2 = circle.getVectorVelocity[1];
+ 		var magnitude1 = this.getVectorVelocity[0];
+ 		var magnitude2 = circle.getVectorVelocity[0];
+ 		//Transform x y vectors to collision coordinate plane
+ 		var coll_dx1 =  magnitude1 * Math.cos(theta1 - phi);
+ 		var coll_dy1 =  magnitude1 * Math.sin(theta1 - phi); //Perpendicular to collision axis unaffeced
+ 		var coll_dx2 =  magnitude2 * Math.cos(theta2 - phi);
+ 		var coll_dy2 =  magnitude2 * Math.sin(theta2 - phi); //Perpendicular to collision axis unaffeced
+ 		//Calculate new velocities vector on collision axis
+ 		var coll_du1 = ((coll_dx1 * (this.mass - circle.mass)) / (this.mass + circle.mass)) +
+ 						((coll_dx2 * (2 * circle.mass)) / (this.mass + circle.mass));
+ 		var coll_du2 = ((coll_dx2 * (circle.mass - this.mass)) / (this.mass + circle.mass)) +
+ 						((coll_dx1 * (2 * this.mass)) / (this.mass + circle.mass));
+ 		//Transform back to cartesian coordinates, magnitude type change, not sure about
+ 		vector1 = createVector(coll_du1,coll_dy1);
+ 	 	vector2 = createVector(coll_du2,coll_dy2);
+ 	 	this.dx =  magnitude1 * Math.cos(phi - theta1);
+ 		this.dy =  magnitude1 * Math.sin(phi - theta1);
+ 		circle.dx =  magnitude2 * Math.cos(phi - theta2);
+ 		circle.dy =  magnitude2 * Math.sin(phi - theta2);
+
+ 		// var xVelocity = circle.dx - this.dx;
+   //      var yVelocity = circle.dy - this.dy;
+   //      var dotProduct = centerDistX*xVelocity + centerDistY*yVelocity;
+   //      //Neat vector maths, used for checking if the objects moves towards one another.
+   //      //TODO investigate, understand, explore. refresh Vector maths also
+   //      if(dotProduct > 0){
+   //          var collisionScale = dotProduct / distSquared;
+   //          var xCollision = centerDistX * collisionScale;
+   //          var yCollision = centerDistY * collisionScale;
+   //          //The Collision vector is the speed difference projected on the Dist vector,
+   //          //thus it is the component of the speed difference needed for the collision.
+   //          var combinedMass = this.mass + circle.mass;
+   //          var collisionWeightA = 2 * circle.mass / combinedMass;
+   //          var collisionWeightB = 2 * this.mass / combinedMass;
+   //          this.dx += collisionWeightA * xCollision;
+   //          this.dy += collisionWeightA * yCollision;
+   //          circle.dx -= collisionWeightB * xCollision;
+   //          circle.dy -= collisionWeightB * yCollision;
+   //      }
+	};
 
 	//Take a rect and see if the the ball is colliding with any of botders
 	//Note: Assumes the ball is in the box for this collision detection to be valid
@@ -184,8 +236,6 @@
 			//update velocity if no collision in X or Y respectivley TODO imporve this section
 			if (!(collisionStr.includes('right') | collisionStr.includes('right'))) {this.dx += this.ddx * dt;}
 			if (!(collisionStr.includes('top') | collisionStr.includes('bottom'))) {this.dy += this.ddy * dt;}
-			//update Ball Kinetic energy. is this correct form for .5mv^2?  check its right when dx != 0
-			this.KineticEnergy = 0.5 * this.m * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
 	};
 
 	//Working with ball Vectors [Not used, just here]
@@ -212,7 +262,6 @@
 		var direction =Math.atan(dy/dx);
 		return [magnitude,direction];
 	}
-
 
 	//Attach ball factory to the window.  Curious what browsers this doesnt work on (Check)
 	global.BallFactory = BallFactory;

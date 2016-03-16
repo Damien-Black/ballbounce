@@ -131,19 +131,6 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-
-//Collisions are elastic.  Preserved E and p
-//This method takes 2 shapes and calculates their new x,y velocity then applies it
-//if there is no shape 2 then the collision is assumed to be with a fixed obj
-function collisionHandle(cir1, cir2){
-	var Xdist = Math.abs(cir1.x_curr - cir2.x_curr);
-	var Ydist = Math.abs(cir1.y_curr - cir2.y_curr);
-	var distanceOfCenters = Math.sqrt(Math.pow(Xdist,2) + Math.pow(Ydist,2));
-	if (distanceOfCenters <= (cir1.radius + cir2.radius)) {
-		cir1.ResolveCollision(cir2);
-	}
-}
-
 function DrawRect(){
 	ctx.beginPath();
 	ctx.fillStyle = "rgb(200,200,200)";
@@ -174,7 +161,7 @@ function loop(){
 	for (j = i + 1; j < State.balls.length; j++){
         if (currBall.IsCircleCollision(State.balls[j]))
         {
-            currBall.ResolveCollision(State.balls[j],State.dt); //Not using dt yet
+            currBall.ResolveCollision2(State.balls[j],State.dt); //Not using dt yet
         }
     } //Handle ball to ball collisions
 
