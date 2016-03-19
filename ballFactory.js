@@ -37,20 +37,16 @@
 	//Simulation engine
 	Ball.prototype.updatePosition = function(dt) {
 		//Cap velocity at 40
-		this.color = ((this.dx > 40) | (this.dy > 40)) ? "green" : "red";
+		//this.color = ((this.dx > 40) | (this.dy > 40)) ? "green" : this.color; DEBUG
 		this.dx = (this.dx > 40) ? 40 : this.dx;
 		this.dy = (this.dy > 40) ? 40 : this.dy;
-		//t_passed += dt; //DEBUG keep track of time passed
-		//console.log("Time passed: " + t_passed);
         this.y_curr += (this.dy * dt) + (0.5 * this.ddy * Math.pow(dt,2));
         this.x_curr += (this.dx * dt) + (0.5 * this.ddx * Math.pow(dt,2));
         //TODO handle potential energy
-        //console.log("Point at: " + (this.y_curr + this.radius)); //DEBUG
 	};
 
 	Ball.prototype.gotoEndGoal = function(totalTime) {
 		var velocityMultiplier = (totalTime < 50) ? totalTime * 0.1 : 5; //limit time multiplier to 100 to avoid velocities exploding out
-		console.log(totalTime);
 		var colors = ["blue","green","yellow","Gold","HotPink","Lime"];
 		this.color = colors[Math.floor(Math.random() * ((colors.length-1)))]; //get a random color. has to be a better way
 		if (this.mass < 400) {this.mass += 5;}//ball gets more massive as it approaches end goal
@@ -127,9 +123,12 @@
 	Ball.prototype.ResolveCollision2 = function(circle,dt){
  		var centerDistX = this.x_curr - circle.x_curr;
  		var centerDistY = this.y_curr - circle.y_curr;
- 		var phi = Math.arctan(centerDistY/centerDistX);
- 		var theta1 = this.getVectorVelocity[1];
- 		var theta2 = circle.getVectorVelocity[1];
+ 		var phi = Math.atan(centerDistY,centerDistX);
+ 		var theta1 = Math.atan2(this.dy,this.dx);
+ 		var theta2 = Math.atan2(circle.dy,circle.dx);
+ 		console.log("Collision Phi: " + phi);
+ 		console.log("Theta Red: " + theta1);
+ 		console.log("Theta blue: " + theta2);
  		var magnitude1 = this.getVectorVelocity[0];
  		var magnitude2 = circle.getVectorVelocity[0];
  		//Transform x y vectors to collision coordinate plane
@@ -145,30 +144,14 @@
  		//Transform back to cartesian coordinates, magnitude type change, not sure about
  		vector1 = createVector(coll_du1,coll_dy1);
  	 	vector2 = createVector(coll_du2,coll_dy2);
- 	 	this.dx =  magnitude1 * Math.cos(phi - theta1);
- 		this.dy =  magnitude1 * Math.sin(phi - theta1);
- 		circle.dx =  magnitude2 * Math.cos(phi - theta2);
- 		circle.dy =  magnitude2 * Math.sin(phi - theta2);
-
- 		// var xVelocity = circle.dx - this.dx;
-   //      var yVelocity = circle.dy - this.dy;
-   //      var dotProduct = centerDistX*xVelocity + centerDistY*yVelocity;
-   //      //Neat vector maths, used for checking if the objects moves towards one another.
-   //      //TODO investigate, understand, explore. refresh Vector maths also
-   //      if(dotProduct > 0){
-   //          var collisionScale = dotProduct / distSquared;
-   //          var xCollision = centerDistX * collisionScale;
-   //          var yCollision = centerDistY * collisionScale;
-   //          //The Collision vector is the speed difference projected on the Dist vector,
-   //          //thus it is the component of the speed difference needed for the collision.
-   //          var combinedMass = this.mass + circle.mass;
-   //          var collisionWeightA = 2 * circle.mass / combinedMass;
-   //          var collisionWeightB = 2 * this.mass / combinedMass;
-   //          this.dx += collisionWeightA * xCollision;
-   //          this.dy += collisionWeightA * yCollision;
-   //          circle.dx -= collisionWeightB * xCollision;
-   //          circle.dy -= collisionWeightB * yCollision;
-   //      }
+ 	 	this.dx =  vector1[0] * Math.cos(phi - theta1);
+ 		this.dy =  vector1[0] * Math.sin(phi - theta1);
+ 		circle.dx =  vector2[0] * Math.cos(phi - theta2);
+ 		circle.dy =  vector1[0] * Math.sin(phi - theta2);
+ 		this.x_curr += this.dx * dt;
+ 		this.y_curr += this.dy * dt;
+ 		circle.x_curr += this.dx * dt;
+ 		circle.y_curr += this.dy * dt;
 	};
 
 	//Take a rect and see if the the ball is colliding with any of botders
@@ -240,8 +223,8 @@
 
 	//Working with ball Vectors [Not used, just here]
 	Ball.prototype.getVectorVelocity = function(){
-		var magnitude = Math.sqrt(Math.pow(self.dx, 2) + Math.pow(self.dy, 2));
-		var direction =Math.atan(self.dy/self.dx);
+		var magnitude = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
+		var direction =Math.atan2(this.dy,this.dx);
 		return [magnitude,direction];
 	};
 
@@ -257,9 +240,9 @@
 
 	//Takes dx and a dy and returns a vector array
 	// NOT USED
-	function createVector(dx,dy){
-		var magnitude = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-		var direction =Math.atan(dy/dx);
+	function createVector(x,y){
+		var magnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+		var direction =Math.atan2(y/x);
 		return [magnitude,direction];
 	}
 

@@ -1,4 +1,4 @@
-(function(){
+(function(global){
 
 var canvas=$("#canvas")[0];
 var ctx=canvas.getContext("2d");
@@ -13,8 +13,8 @@ var State = {
 State.balls = [];
 State.room = {}; //room in this case is a rectangle obj
 State.room.offset = 0; //Offset will be used for a spinning room (in Radians)
-State.room.width = canvas.width * 0.70;
-State.room.height = canvas.height * 0.70;
+State.room.width = canvas.width * 0.7;
+State.room.height = canvas.height * 0.7;
 State.room.x = (canvas.width - State.room.width) / 2;
 State.room.y = (canvas.height - State.room.height) / 2;
 
@@ -25,7 +25,7 @@ State.room.y = (canvas.height - State.room.height) / 2;
 // 	newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
 // 	newBall.mass = 1;
 // 	newBall.radius = 10;
-// 	newBall.color = "red";
+// 	newBall.color = "blue";
 // 	newBall.dx = getRandomInt(-25,25);
 // 	newBall.dy = getRandomInt(-25,25);
 // 	//newBall.ddy = 9.8;
@@ -35,8 +35,10 @@ State.room.y = (canvas.height - State.room.height) / 2;
 //TEST for rotating scenario
 
 //Get letter end point position
-var letterPositions = makeLetter("",[175+State.room.startX,300 + State.room.startY]);
-console.log(letterPositions);
+//TODO center letters of any length (right now it centers 3)
+var letterPositions = makeLetter("",
+	[Math.min(State.room.x + State.room.width*0.15,State.room.x+ State.room.width*0.85),
+	Math.min(State.room.y + State.room.height*0.3,State.room.y + State.room.height*0.7)]);
 
 //target balls for making a letter
 // how many balls needed
@@ -51,7 +53,7 @@ if (letterPositions) {
 		targetBall.y = getRandomInt(0,State.room.height);
 		targetBall.mass = 1;
 		targetBall.radius = 10;
-		targetBall.color = "green";
+		targetBall.color = "red";
 		targetBall.dx = getRandomInt(-25,25);
 		targetBall.dy = getRandomInt(-25,25);
 		targetBall.endX = currletterX[j]; //since I'm already looking at the X value
@@ -65,19 +67,27 @@ if (letterPositions) {
 }
 }
 
-//TEST for rotating scenario
-for (var k = 0; k < 4; k++) {
-	var newBall = {};
-	newBall.x = getRandomInt(300,400);
-	newBall.y = getRandomInt(300,400);
-	newBall.mass = 1;
-	newBall.radius = 20;
-	newBall.color = "red";
-	newBall.dx = getRandomInt(-30,30);
-	newBall.dy = getRandomInt(-30,30);
-	//newBall.ddy = 9.8;
-    State.balls.push(BallFactory(newBall));
-}
+// //TEST for rotating scenario
+var testBall1 = {};
+testBall1.x = 250;
+testBall1.y = 300;
+testBall1.mass = 1;
+testBall1.radius = 20;
+testBall1.color = "red";
+testBall1.dx = 20;
+testBall1.dy = 0;
+State.balls.push(BallFactory(testBall1));
+
+var testBall2 = {};
+testBall2.x = 500;
+testBall2.y = 300;
+testBall2.mass = 1;
+testBall2.radius = 20;
+testBall2.color = "blue";
+testBall2.dx = -20;
+testBall2.dy = 0;
+State.balls.push(BallFactory(testBall2));
+
 
 //Returns [x],[y] values needed to create a letter
 //starting corner is the upperleft [x,y] coordinates for writing the letter
@@ -144,6 +154,8 @@ function DrawRect(){
 	ctx.strokeStyle="red";
     ctx.rect(State.room.x, State.room.y, State.room.width, State.room.height);
 	ctx.stroke();
+
+
 }
 
 function loop(){
@@ -180,5 +192,6 @@ function loop(){
 setInterval(loop, 50);
 
 //Expose the State in the future for user interaction
+global.State = State;
 
-})();
+})(typeof window !== "undefined" ? window : this);
