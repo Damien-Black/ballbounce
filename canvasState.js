@@ -11,12 +11,35 @@ var State = {
 	totalTimePassed: 0
 };
 State.balls = [];
-State.room = {}; //room in this case is a rectangle obj
-State.room.offset = 0; //Offset will be used for a spinning room (in Radians)
-State.room.width = canvas.width * 0.7;
-State.room.height = canvas.height * 0.7;
-State.room.x = (canvas.width - State.room.width) / 2;
-State.room.y = (canvas.height - State.room.height) / 2;
+State.room = {
+	offset: 0, //Offset will be used for a spinning room (in Radians)
+	width: canvas.width * 0.7,
+	height: canvas.height * 0.7,
+	center_x: canvas.width / 2,
+	center_y: canvas.height / 2,
+	getXY1: function() {
+		var x = this.center_x + (Math.cos((Math.PI/4) + this.offset)) * (this.width/2);
+		var y = this.center_y + (Math.sin((Math.PI/4) + this.offset)) * (this.height/2);
+		return [x,y];
+	},
+	getXY2: function() {
+		var x = this.center_x + (Math.cos((3*Math.PI/4) + this.offset)) * (this.width/2);
+		var y = this.center_y + (Math.sin((3*Math.PI/4) + this.offset)) * (this.height/2);
+		return [x,y];
+	},
+	getXY3: function() {
+		var x = this.center_x + (Math.cos((5*Math.PI/4) + this.offset)) * (this.width/2);
+		var y = this.center_y + (Math.sin((5*Math.PI/4) + this.offset)) * (this.height/2);
+		return [x,y];
+	},
+	getXY4: function() {
+		var x = this.center_x + (Math.cos((-1*Math.PI/4) + this.offset)) * (this.width/2);
+		var y = this.center_y + (Math.sin((-1*Math.PI/4) + this.offset)) * (this.height/2);
+		return [x,y];
+	},
+
+}; //room in this case is a rectangle obj
+
 
 //Add balls
 // for (i = 0; i < 25; i++) {
@@ -68,25 +91,25 @@ if (letterPositions) {
 }
 
 // //TEST for rotating scenario
-var testBall1 = {};
-testBall1.x = 250;
-testBall1.y = 300;
-testBall1.mass = 1;
-testBall1.radius = 20;
-testBall1.color = "red";
-testBall1.dx = 20;
-testBall1.dy = 0;
-State.balls.push(BallFactory(testBall1));
+// var testBall1 = {};
+// testBall1.x = 250;
+// testBall1.y = 300;
+// testBall1.mass = 1;
+// testBall1.radius = 20;
+// testBall1.color = "red";
+// testBall1.dx = 20;
+// testBall1.dy = 0;
+// State.balls.push(BallFactory(testBall1));
 
-var testBall2 = {};
-testBall2.x = 500;
-testBall2.y = 300;
-testBall2.mass = 1;
-testBall2.radius = 20;
-testBall2.color = "blue";
-testBall2.dx = -20;
-testBall2.dy = 0;
-State.balls.push(BallFactory(testBall2));
+// var testBall2 = {};
+// testBall2.x = 500;
+// testBall2.y = 300;
+// testBall2.mass = 1;
+// testBall2.radius = 20;
+// testBall2.color = "blue";
+// testBall2.dx = -20;
+// testBall2.dy = 0;
+// State.balls.push(BallFactory(testBall2));
 
 
 //Returns [x],[y] values needed to create a letter
@@ -149,10 +172,15 @@ function DrawRect(){
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	//Draw Rect in center of the canvas
-	ctx.beginPath();
-	ctx.lineWidth="6";
-	ctx.strokeStyle="red";
-    ctx.rect(State.room.x, State.room.y, State.room.width, State.room.height);
+	var point1 = State.room.getXY1();
+	var point2 = State.room.getXY2();
+	var point3 = State.room.getXY3();
+	var point4 = State.room.getXY4();
+	ctx.moveTo(point1[0], point1[1]);
+	ctx.lineTo(point2[0], point2[1]);
+	ctx.lineTo(point3[0], point3[1]);
+	ctx.lineTo(point4[0], point4[1]);
+	ctx.lineTo(point1[0], point1[1]);
 	ctx.stroke();
 
 
@@ -160,7 +188,8 @@ function DrawRect(){
 
 function loop(){
 	//change State - Simulation engine call for next time point
-	State.offset += 10; //increase offset by 10 radians
+	State.room.offset += Math.PI / 128; //increase offset by 10 radians
+	State.room.offset = (State.room.offset >= Math.PI*2) ? (State.room.offset - (2*Math.PI) + (Math.PI / 64)) : State.room.offset;
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
@@ -173,7 +202,7 @@ function loop(){
 	for (j = i + 1; j < State.balls.length; j++){
         if (currBall.IsCircleCollision(State.balls[j]))
         {
-            currBall.ResolveCollision2(State.balls[j],State.dt); //Not using dt yet
+            currBall.ResolveCollision(State.balls[j],State.dt); //Not using dt yet
         }
     } //Handle ball to ball collisions
 
