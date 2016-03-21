@@ -221,6 +221,34 @@
 			if (!(collisionStr.includes('top') | collisionStr.includes('bottom'))) {this.dy += this.ddy * dt;}
 	};
 
+	Ball.prototype.RectangleBorderCollision2 = function(rect,dt){
+		var rightSideRect = lineEqSolveForX(rect.getXY1,rect.getXY4); //funciton taking a Y value.  Describing 'right' side of the rectangle
+		var collisionStr = []; //Array of strings
+		if (this.x_curr + this.radius >= rightSideRect(this.y)) {collisionStr.push("right");}
+		if (collisionStr.length !== 0){
+			//Move ball to surface where it collided with
+			//change dir based on collision "wall" str array
+			//	NOTE: moving ball breaks physics I recalculate to correct for this, but still not ideal
+			var initAxisPosX;
+			var dtWall;
+			var dtBounce;
+			var tempV;
+			for (var i = collisionStr.length - 1; i >= 0; i--) {
+				//TODO divide by 0 very possible in dtWall calc
+				//	Currently can cheat by putting box not at 0 in x or y
+				if (collisionStr[i] == "right") {
+					initAxisPosX = (-0.5*this.ddx*Math.pow(dt,2)) - (this.dx * dt) + this.x_curr+this.radius;
+					dtWall = (this.ddx) ? quadSolver((this.ddx / 2),this.dx,(initAxisPosX - rightSideRect)) : (rightSideRect - initAxisPosX) / this.dx;
+					dtBounce = dt - dtWall;
+					tempV = -1 * (this.dx + (this.ddx * dtWall));//velocity right after moment of collision
+					this.x_curr = (rightSideRect - this.radius) + (tempV * dtBounce) + (0.5 * this.ddx * Math.pow(dtBounce,2));
+					this.dx = tempV + (this.ddx * dtBounce);
+				}
+			}
+			this.color = "green";
+		}
+	};
+
 	//Working with ball Vectors [Not used, just here]
 	Ball.prototype.getVectorVelocity = function(){
 		var magnitude = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
@@ -244,6 +272,24 @@
 		var magnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 		var direction =Math.atan2(y/x);
 		return [magnitude,direction];
+	}
+
+	//Takes 2 points [x,y] Returns function describing a line
+	// f(x) form y = mx + b || will make work for when x is the unknown
+	//	x = (1/m)y + -1 *(b/m) [send parameters in this form]
+	function lineEqSolveForY(point1, point2) {
+		var m = ((point2[1] - point1[1]) / (point2[0] - point1[0]));
+		var b = point2[1] - m*point2[0];
+		return function(x){
+			return (m*x + b);
+		};
+	}
+	function lineEqSolveForX(point1,point2){
+				var m = ((point2[1] - point1[1]) / (point2[0] - point1[0]));
+		var b = point2[1] - m*point2[0];
+		return function(y){
+			return ((1/m)*y + (-1*b/m));
+		};
 	}
 
 	//Attach ball factory to the window.  Curious what browsers this doesnt work on (Check)

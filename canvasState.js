@@ -90,16 +90,16 @@ if (letterPositions) {
 }
 }
 
-// //TEST for rotating scenario
-// var testBall1 = {};
-// testBall1.x = 250;
-// testBall1.y = 300;
-// testBall1.mass = 1;
-// testBall1.radius = 20;
-// testBall1.color = "red";
-// testBall1.dx = 20;
-// testBall1.dy = 0;
-// State.balls.push(BallFactory(testBall1));
+//TEST for rotating scenario
+var testBall1 = {};
+testBall1.x = 250;
+testBall1.y = 300;
+testBall1.mass = 1;
+testBall1.radius = 20;
+testBall1.color = "red";
+testBall1.dx = 20;
+testBall1.dy = 0;
+State.balls.push(BallFactory(testBall1));
 
 // var testBall2 = {};
 // testBall2.x = 500;
@@ -193,7 +193,7 @@ function loop(){
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
-	currBall.RectangleBorderCollision(State.room,State.dt); //dt passing here is suspect
+	currBall.RectangleBorderCollision2(State.room,State.dt); //dt passing here is suspect
 	if (State.totalTimePassed > 10) { //40 is good
 		if (currBall.isSpecial) {
 		currBall.gotoEndGoal(State.totalTimePassed);
