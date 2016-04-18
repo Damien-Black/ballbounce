@@ -1,45 +1,22 @@
 (function(global){
-
 var canvas=$("#canvas")[0];
 var ctx=canvas.getContext("2d");
 //initial state
 var State = {
-
 	TotalKE: 0,
 	TotalPE: 0,
 	dt: 0.2,
 	totalTimePassed: 0
 };
 State.balls = [];
-State.room = {
-	offset: 0, //Offset will be used for a spinning room (in Radians)
-	width: canvas.width * 0.7,
-	height: canvas.height * 0.7,
-	center_x: canvas.width / 2,
-	center_y: canvas.height / 2,
-	getXY1: function() {
-		var x = this.center_x + (Math.cos((Math.PI/4) + this.offset)) * (this.width/2);
-		var y = this.center_y + (Math.sin((Math.PI/4) + this.offset)) * (this.height/2);
-		return [x,y];
-	},
-	getXY2: function() {
-		var x = this.center_x + (Math.cos((3*Math.PI/4) + this.offset)) * (this.width/2);
-		var y = this.center_y + (Math.sin((3*Math.PI/4) + this.offset)) * (this.height/2);
-		return [x,y];
-	},
-	getXY3: function() {
-		var x = this.center_x + (Math.cos((5*Math.PI/4) + this.offset)) * (this.width/2);
-		var y = this.center_y + (Math.sin((5*Math.PI/4) + this.offset)) * (this.height/2);
-		return [x,y];
-	},
-	getXY4: function() {
-		var x = this.center_x + (Math.cos((-1*Math.PI/4) + this.offset)) * (this.width/2);
-		var y = this.center_y + (Math.sin((-1*Math.PI/4) + this.offset)) * (this.height/2);
-		return [x,y];
-	},
-
-}; //room in this case is a rectangle obj
-
+State.room = {}; //room in this case is a rectangle obj
+//Create Rectangle matrix
+var point1 = [canvas.width*0.75,canvas.height*0.25];
+var point2 = [canvas.width*0.75,canvas.height*0.75];
+var point3 = [canvas.width*0.25,canvas.height*0.75];
+var point4 = [canvas.width*0.25,canvas.height*0.25];
+State.room.rectMatrix = $M([point1,point2,point3,point4]);
+var Rect = State.room.rectMatrix; //Short hand for rectangle
 
 //Add balls
 // for (i = 0; i < 25; i++) {
@@ -158,6 +135,31 @@ function makeLetter(letters,startingCorner,resultsX,resultsY){
 	}
 }
 
+//Returns a rotated Rect matrix
+function RotateRect(rectangle, radians) {
+	//Create centered matrix
+	var newElements= [];
+	for (var i = rectangle.elements.length - 1; i >= 0; i--) {
+		var newX = rectangle.elements[i][0] - canvas.width*0.5;
+		var newY = rectangle.elements[i][1] - canvas.height*0.5;
+		newElements.push([newX,newY]);
+	}
+	var resultMatrix = $M(newElements);
+	console.log(rectangle.elements[0][0]);
+	console.log(resultMatrix);
+	// Rotate points
+	resultMatrix = resultMatrix.multiply(MatrixObj.Rotation(radians));
+	//Recenter on original center
+	newElements.length = 0;
+	for (var i = resultMatrix.elements.length - 1; i >= 0; i--) {
+		var newX = resultMatrix.elements[i][0] + canvas.width*0.5;
+		var newY = resultMatrix.elements[i][1] + canvas.height*0.5;
+		newElements.push([newX,newY]);
+	}
+	//Return Matrix
+	return $M(newElements);
+}
+
 // Returns a random integer between min (included) and max (excluded)
 // Using Math.round() will give you a non-uniform distribution!
 function getRandomInt(min, max) {
@@ -172,28 +174,26 @@ function DrawRect(){
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	//Draw Rect in center of the canvas
-	var point1 = State.room.getXY1();
-	var point2 = State.room.getXY2();
-	var point3 = State.room.getXY3();
-	var point4 = State.room.getXY4();
-	ctx.moveTo(point1[0], point1[1]);
-	ctx.lineTo(point2[0], point2[1]);
-	ctx.lineTo(point3[0], point3[1]);
-	ctx.lineTo(point4[0], point4[1]);
-	ctx.lineTo(point1[0], point1[1]);
+	var point1 = Rect.row(1);
+	var point2 = Rect.row(2);
+	var point3 = Rect.row(3);
+	var point4 = Rect.row(4);
+	ctx.moveTo(point1.elements[0], point1.elements[1]);
+	ctx.lineTo(point2.elements[0], point2.elements[1]);
+	ctx.lineTo(point3.elements[0], point3.elements[1]);
+	ctx.lineTo(point4.elements[0], point4.elements[1]);
+	ctx.lineTo(point1.elements[0], point1.elements[1]);
 	ctx.stroke();
-
-
 }
 
 function loop(){
 	//change State - Simulation engine call for next time point
-	State.room.offset += Math.PI / 128; //increase offset by 10 radians
-	State.room.offset = (State.room.offset >= Math.PI*2) ? (State.room.offset - (2*Math.PI) + (Math.PI / 64)) : State.room.offset;
+	//Move center to origin (0) and rotate using matrix, then move center to original location
+	Rect = RotateRect(Rect, Math.PI / 128);
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
-	currBall.RectangleBorderCollision2(State.room,State.dt); //dt passing here is suspect
+	//currBall.RectangleBorderCollision2(State.room,State.dt); //dt passing here is suspect
 	if (State.totalTimePassed > 10) { //40 is good
 		if (currBall.isSpecial) {
 		currBall.gotoEndGoal(State.totalTimePassed);
