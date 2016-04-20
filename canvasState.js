@@ -16,7 +16,9 @@ var point2 = [canvas.width*0.75,canvas.height*0.75];
 var point3 = [canvas.width*0.25,canvas.height*0.75];
 var point4 = [canvas.width*0.25,canvas.height*0.25];
 State.room.rectMatrix = $M([point1,point2,point3,point4]);
+State.room.offset = 0;
 var Rect = State.room.rectMatrix; //Short hand for rectangle
+Rect.offset = 0;
 
 //Add balls
 // for (i = 0; i < 25; i++) {
@@ -145,10 +147,10 @@ function RotateRect(rectangle, radians) {
 		newElements.push([newX,newY]);
 	}
 	var resultMatrix = $M(newElements);
-	console.log(rectangle.elements[0][0]);
-	console.log(resultMatrix);
 	// Rotate points
 	resultMatrix = resultMatrix.multiply(MatrixObj.Rotation(radians));
+	State.room.offset += radians;
+	State.room.offset = (State.room.offset >= Math.PI*2) ? (State.room.offset - (2*Math.PI) + (Math.PI / 64)) : State.room.offset; //keep offset below 2pi (keeps number small is this important?)
 	//Recenter on original center
 	newElements.length = 0;
 	for (var i = resultMatrix.elements.length - 1; i >= 0; i--) {
@@ -193,7 +195,7 @@ function loop(){
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
-	//currBall.RectangleBorderCollision2(State.room,State.dt); //dt passing here is suspect
+	currBall.RectangleBorderCollision2(Rect,State.room.offset,State.dt); //dt passing here is suspect
 	if (State.totalTimePassed > 10) { //40 is good
 		if (currBall.isSpecial) {
 		currBall.gotoEndGoal(State.totalTimePassed);

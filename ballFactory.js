@@ -1,3 +1,4 @@
+//Use Vectors from Sylvester API instead of dx dy
 (function(global){
 	// General Notes:
 	//Check that anom functions take the name of properties theyre asssigned to in current JS engine versions
@@ -69,6 +70,15 @@
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#003300';
     ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(this.circPoint23[0], this.circPoint23[1], 5, 0, 2 * Math.PI, false);
+    ctx.fillStyle = "blue";
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#003300';
+    ctx.stroke();
+
 	};
 
 	//Takes another circle (2d ball) and returns if the circle is colliding with this ball
@@ -221,38 +231,78 @@
 			if (!(collisionStr.includes('top') | collisionStr.includes('bottom'))) {this.dy += this.ddy * dt;}
 	};
 
-	Ball.prototype.RectangleBorderCollision2 = function(rect,dt){
-		var rightSideRect = lineEqSolveForX(rect.getXY1,rect.getXY4); //funciton taking a Y value.  Describing 'right' side of the rectangle
-		var collisionStr = []; //Array of strings
-		if (this.x_curr + this.radius >= rightSideRect(this.y)) {collisionStr.push("right");}
-		if (collisionStr.length !== 0){
-			//Move ball to surface where it collided with
-			//change dir based on collision "wall" str array
-			//	NOTE: moving ball breaks physics I recalculate to correct for this, but still not ideal
-			var initAxisPosX;
-			var dtWall;
-			var dtBounce;
-			var tempV;
-			for (var i = collisionStr.length - 1; i >= 0; i--) {
-				//TODO divide by 0 very possible in dtWall calc
-				//	Currently can cheat by putting box not at 0 in x or y
-				if (collisionStr[i] == "right") {
-					initAxisPosX = (-0.5*this.ddx*Math.pow(dt,2)) - (this.dx * dt) + this.x_curr+this.radius;
-					dtWall = (this.ddx) ? quadSolver((this.ddx / 2),this.dx,(initAxisPosX - rightSideRect)) : (rightSideRect - initAxisPosX) / this.dx;
-					dtBounce = dt - dtWall;
-					tempV = -1 * (this.dx + (this.ddx * dtWall));//velocity right after moment of collision
-					this.x_curr = (rightSideRect - this.radius) + (tempV * dtBounce) + (0.5 * this.ddx * Math.pow(dtBounce,2));
-					this.dx = tempV + (this.ddx * dtBounce);
-				}
-			}
-			this.color = "green";
+	Ball.prototype.RectangleBorderCollision2 = function(Rect,offset,dt){
+		//create vector for both axis of the border
+		var point1 = Rect.row(1);
+		var point2 = Rect.row(2);
+		var point3 = Rect.row(3);
+
+		var side12 = $V([point1.elements[0] - point2.elements[0], -1 *(point1.elements[1] - point2.elements[1])]);  
+		var side23 = $V([point2.elements[0] - point3.elements[0], -1 *(point2.elements[1] - point3.elements[1])]); 
+		var side12Normal = side12.rotate(Math.PI / 2,$V([1,1]));
+		var side23Normal = side23.rotate(Math.PI / 2,$V([1,1]));
+		//Instead Circle is 4 points (which always collide with a box first) rotate those 4 points that correspod to a side
+		//  Then Project each point onto 1 of 2 possible axis the rectangle can have, result should be non zero for no collision
+		circPoint12 = [this.x_curr + (this.radius * Math.cos(offset)), this.y_curr - (this.radius * Math.sin(offset))];
+		circPoint23 = [this.x_curr + (this.radius * Math.sin(offset)), this.y_curr + (this.radius * Math.cos(offset))];
+		circPoint34 = [this.x_curr - (this.radius * Math.cos(offset)), this.y_curr + (this.radius * Math.sin(offset))];
+		circPoint41 = [this.x_curr - (this.radius * Math.sin(offset)), this.y_curr - (this.radius * Math.cos(offset))];
+		
+		circVector12 = $V([circPoint12[0] - point1.elements[0],-1 * (circPoint12[1] - point1.elements[1])]);
+		circVector23 = $V([circPoint23[0] - point3.elements[0],-1 * (circPoint23[1] - point3.elements[1])]);
+		circVector34 = $V([circPoint34[0] - point3.elements[0],-1 * (circPoint34[1] - point3.elements[1])]);
+		circVector41 = $V([circPoint41[0] - point1.elements[0],-1 * (circPoint41[1] - point1.elements[1])]);
+		//for each side find dot product Normal with circle is less than or equal to 0
+		dot12 = circVector12.dot(side12Normal);
+		dot23 = circVector23.dot(side23Normal);
+		dot34 = circVector34.dot(side12Normal.rotate(Math.PI,$V([1,1]))); //Negative of side34 vector
+		dot41 = circVector41.dot(side23Normal.rotate(Math.PI,$V([1,1]))); //Negative of side41 vector
+		//	Handle collision if so
+		if (dot12 <= 0) {
+			this.color = "blue";
+			this.RectangleBorderCollisionHandle(Rect,side12Normal);
 		}
+		if (dot23 <= 0) {
+			this.color = "green";
+			this.RectangleBorderCollisionHandle(Rect,side23Normal);
+		}
+		if (dot34 <= 0) {
+			this.color = "Gold"
+			this.RectangleBorderCollisionHandle(Rect,side12Normal.rotate(Math.PI,$V([1,1])));
+		}
+		if (dot41 <= 0) {
+			this.color = "HotPink";
+			this.RectangleBorderCollisionHandle(Rect,side23Normal.rotate(Math.PI,$V([1,1])));
+		}
+		//This can be cleaned up with Helper functions
+		//DEBUG stuff start
+		this.circPoint23 = circPoint23;
+		//DEBUG stuff end
+	};
+
+	//handle a collision with the rectangle border
+	//Rect: rectangle Obj | rectNormal: Vector(sylvester API) normal to rectangle side 
+	Ball.prototype.RectangleBorderCollisionHandle = function(Rect,rectNormal){
+		//if ball is moving away from rectangle do nothing
+		var ballV = $V([this.dx,this.dy])
+		if (ballV.dot(rectNormal) <= 0) {
+			//Apply resultant force, project negative ballVec along dx dy and set values respectively
+			console.log("Ori Ball V: " + ballV.elements);
+			ballV = ballV.rotate(Math.PI,$V([1,1]));
+			console.log(this.dx);
+			console.log(this.dy);
+			this.dx = ballV.elements[0];
+			this.dy = ballV.elements[1];
+			console.log(this.dx);
+			console.log(this.dy);
+			console.log("Rotated Ball V: " + ballV.elements);
+		}		
 	};
 
 	//Working with ball Vectors [Not used, just here]
 	Ball.prototype.getVectorVelocity = function(){
 		var magnitude = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
-		var direction =Math.atan2(this.dy,this.dx);
+		var direction = Math.atan2(this.dy,this.dx);
 		return [magnitude,direction];
 	};
 
