@@ -76,8 +76,8 @@ testBall1.y = 300;
 testBall1.mass = 1;
 testBall1.radius = 20;
 testBall1.color = "red";
-testBall1.dx = 20;
-testBall1.dy = 0;
+testBall1.dx = getRandomInt(-30,30);
+testBall1.dy = getRandomInt(-30,30);
 State.balls.push(BallFactory(testBall1));
 
 // var testBall2 = {};
@@ -180,10 +180,30 @@ function DrawRect(){
 	var point2 = Rect.row(2);
 	var point3 = Rect.row(3);
 	var point4 = Rect.row(4);
+	// ctx.moveTo(point1.elements[0], point1.elements[1]);
+	// ctx.lineTo(point2.elements[0], point2.elements[1]);
+	// ctx.lineTo(point3.elements[0], point3.elements[1]);
+	// ctx.lineTo(point4.elements[0], point4.elements[1]);
+	// ctx.lineTo(point1.elements[0], point1.elements[1]);
+	// ctx.stroke();
+
+	//DEBUG colored sides
 	ctx.moveTo(point1.elements[0], point1.elements[1]);
 	ctx.lineTo(point2.elements[0], point2.elements[1]);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.strokeStyle="blue";
+	ctx.moveTo(point2.elements[0], point2.elements[1]);
 	ctx.lineTo(point3.elements[0], point3.elements[1]);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.strokeStyle="green";
+	ctx.moveTo(point3.elements[0], point3.elements[1]);
 	ctx.lineTo(point4.elements[0], point4.elements[1]);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.strokeStyle="Gold";
+	ctx.moveTo(point4.elements[0], point4.elements[1]);
 	ctx.lineTo(point1.elements[0], point1.elements[1]);
 	ctx.stroke();
 }

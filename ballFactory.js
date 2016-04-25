@@ -71,6 +71,15 @@
     ctx.strokeStyle = '#003300';
     ctx.stroke();
 
+    //DEBUG START - drawing "The 4 points" on circle
+    ctx.beginPath();
+    ctx.arc(this.circPoint12[0], this.circPoint12[1], 5, 0, 2 * Math.PI, false);
+    ctx.fillStyle = "red";
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#003300';
+    ctx.stroke();
+
     ctx.beginPath();
     ctx.arc(this.circPoint23[0], this.circPoint23[1], 5, 0, 2 * Math.PI, false);
     ctx.fillStyle = "blue";
@@ -79,6 +88,21 @@
     ctx.strokeStyle = '#003300';
     ctx.stroke();
 
+    ctx.beginPath();
+    ctx.arc(this.circPoint34[0], this.circPoint34[1], 5, 0, 2 * Math.PI, false);
+    ctx.fillStyle = "green";
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#003300';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(this.circPoint41[0], this.circPoint41[1], 5, 0, 2 * Math.PI, false);
+    ctx.fillStyle = "gold";
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#003300';
+    ctx.stroke();
 	};
 
 	//Takes another circle (2d ball) and returns if the circle is colliding with this ball
@@ -113,7 +137,6 @@
         var yVelocity = circle.dy - this.dy;
         var dotProduct = centerDistX*xVelocity + centerDistY*yVelocity;
         //Neat vector maths, used for checking if the objects moves towards one another.
-        //TODO investigate, understand, explore. refresh Vector maths also
         if(dotProduct > 0){
             var collisionScale = dotProduct / distSquared;
             var xCollision = centerDistX * collisionScale;
@@ -128,40 +151,6 @@
             circle.dx -= collisionWeightB * xCollision;
             circle.dy -= collisionWeightB * yCollision;
         }
-	};
-	//Alternate collision handling
-	Ball.prototype.ResolveCollision2 = function(circle,dt){
- 		var centerDistX = this.x_curr - circle.x_curr;
- 		var centerDistY = this.y_curr - circle.y_curr;
- 		var phi = Math.atan(centerDistY,centerDistX);
- 		var theta1 = Math.atan2(this.dy,this.dx);
- 		var theta2 = Math.atan2(circle.dy,circle.dx);
- 		console.log("Collision Phi: " + phi);
- 		console.log("Theta Red: " + theta1);
- 		console.log("Theta blue: " + theta2);
- 		var magnitude1 = this.getVectorVelocity[0];
- 		var magnitude2 = circle.getVectorVelocity[0];
- 		//Transform x y vectors to collision coordinate plane
- 		var coll_dx1 =  magnitude1 * Math.cos(theta1 - phi);
- 		var coll_dy1 =  magnitude1 * Math.sin(theta1 - phi); //Perpendicular to collision axis unaffeced
- 		var coll_dx2 =  magnitude2 * Math.cos(theta2 - phi);
- 		var coll_dy2 =  magnitude2 * Math.sin(theta2 - phi); //Perpendicular to collision axis unaffeced
- 		//Calculate new velocities vector on collision axis
- 		var coll_du1 = ((coll_dx1 * (this.mass - circle.mass)) / (this.mass + circle.mass)) +
- 						((coll_dx2 * (2 * circle.mass)) / (this.mass + circle.mass));
- 		var coll_du2 = ((coll_dx2 * (circle.mass - this.mass)) / (this.mass + circle.mass)) +
- 						((coll_dx1 * (2 * this.mass)) / (this.mass + circle.mass));
- 		//Transform back to cartesian coordinates, magnitude type change, not sure about
- 		vector1 = createVector(coll_du1,coll_dy1);
- 	 	vector2 = createVector(coll_du2,coll_dy2);
- 	 	this.dx =  vector1[0] * Math.cos(phi - theta1);
- 		this.dy =  vector1[0] * Math.sin(phi - theta1);
- 		circle.dx =  vector2[0] * Math.cos(phi - theta2);
- 		circle.dy =  vector1[0] * Math.sin(phi - theta2);
- 		this.x_curr += this.dx * dt;
- 		this.y_curr += this.dy * dt;
- 		circle.x_curr += this.dx * dt;
- 		circle.y_curr += this.dy * dt;
 	};
 
 	//Take a rect and see if the the ball is colliding with any of botders
@@ -232,31 +221,37 @@
 	};
 
 	Ball.prototype.RectangleBorderCollision2 = function(Rect,offset,dt){
-		//create vector for both axis of the border
+		//create vector for both axis of the border, remember with canvas Y is flipped
 		var point1 = Rect.row(1);
 		var point2 = Rect.row(2);
 		var point3 = Rect.row(3);
 
-		var side12 = $V([point1.elements[0] - point2.elements[0], -1 *(point1.elements[1] - point2.elements[1])]);  
-		var side23 = $V([point2.elements[0] - point3.elements[0], -1 *(point2.elements[1] - point3.elements[1])]); 
-		var side12Normal = side12.rotate(Math.PI / 2,$V([1,1]));
-		var side23Normal = side23.rotate(Math.PI / 2,$V([1,1]));
+		var side12 = $V([point2.elements[0] - point1.elements[0], -1 * (point2.elements[1] - point1.elements[1]),0]);  
+		var side23 = $V([point3.elements[0] - point2.elements[0], -1 * (point3.elements[1] - point2.elements[1]),0]); 
+		var side12Normal = side12.rotate(-1 * Math.PI / 2,$L([0,0,0],[0,0,1])); //want normals pointing towards the center of the circle
+		var side23Normal = side23.rotate(-1 * Math.PI / 2,$L([0,0,0],[0,0,1]));
 		//Instead Circle is 4 points (which always collide with a box first) rotate those 4 points that correspod to a side
-		//  Then Project each point onto 1 of 2 possible axis the rectangle can have, result should be non zero for no collision
+		//  Then Project each point onto 1 of 2 possible axis the rectangle can have, result should be >0 for no collision
 		circPoint12 = [this.x_curr + (this.radius * Math.cos(offset)), this.y_curr - (this.radius * Math.sin(offset))];
 		circPoint23 = [this.x_curr + (this.radius * Math.sin(offset)), this.y_curr + (this.radius * Math.cos(offset))];
 		circPoint34 = [this.x_curr - (this.radius * Math.cos(offset)), this.y_curr + (this.radius * Math.sin(offset))];
 		circPoint41 = [this.x_curr - (this.radius * Math.sin(offset)), this.y_curr - (this.radius * Math.cos(offset))];
-		
-		circVector12 = $V([circPoint12[0] - point1.elements[0],-1 * (circPoint12[1] - point1.elements[1])]);
-		circVector23 = $V([circPoint23[0] - point3.elements[0],-1 * (circPoint23[1] - point3.elements[1])]);
-		circVector34 = $V([circPoint34[0] - point3.elements[0],-1 * (circPoint34[1] - point3.elements[1])]);
-		circVector41 = $V([circPoint41[0] - point1.elements[0],-1 * (circPoint41[1] - point1.elements[1])]);
+
+		circVector12 = $V([circPoint12[0] - point1.elements[0],-1 * (circPoint12[1] - point1.elements[1]),0]);
+		circVector23 = $V([circPoint23[0] - point3.elements[0],-1 * (circPoint23[1] - point3.elements[1]),0]);
+		circVector34 = $V([circPoint34[0] - point3.elements[0],-1 * (circPoint34[1] - point3.elements[1]),0]);
+		circVector41 = $V([circPoint41[0] - point1.elements[0],-1 * (circPoint41[1] - point1.elements[1]),0]);
 		//for each side find dot product Normal with circle is less than or equal to 0
+		pointLineBorderCollisionHandle(this,circVector12,side12Normal.toUnitVector());
+		pointLineBorderCollisionHandle(this,circVector23,side23Normal.toUnitVector());
+		pointLineBorderCollisionHandle(this,circVector34,side12Normal.rotate(Math.PI,$L([0,0,0],[0,0,1])).toUnitVector()); //Negative of side34 vector
+		pointLineBorderCollisionHandle(this,circVector41,side23Normal.rotate(Math.PI,$L([0,0,0],[0,0,1])).toUnitVector()); //Negative of side41 vector
+
+		/*
 		dot12 = circVector12.dot(side12Normal);
 		dot23 = circVector23.dot(side23Normal);
-		dot34 = circVector34.dot(side12Normal.rotate(Math.PI,$V([1,1]))); //Negative of side34 vector
-		dot41 = circVector41.dot(side23Normal.rotate(Math.PI,$V([1,1]))); //Negative of side41 vector
+		dot34 = circVector34.dot(side12Normal.rotate(Math.PI,$V([1,1]))); 
+		dot41 = circVector41.dot(side23Normal.rotate(Math.PI,$V([1,1]))); 
 		//	Handle collision if so
 		if (dot12 <= 0) {
 			this.color = "blue";
@@ -275,36 +270,39 @@
 			this.RectangleBorderCollisionHandle(Rect,side23Normal.rotate(Math.PI,$V([1,1])));
 		}
 		//This can be cleaned up with Helper functions
+		*/
 		//DEBUG stuff start
 		this.circPoint23 = circPoint23;
+		this.circPoint12 = circPoint12;
+		this.circPoint23 = circPoint23;
+		this.circPoint34 = circPoint34;
+		this.circPoint41 = circPoint41;
 		//DEBUG stuff end
 	};
 
 	//handle a collision with the rectangle border
 	//Rect: rectangle Obj | rectNormal: Vector(sylvester API) normal to rectangle side 
-	Ball.prototype.RectangleBorderCollisionHandle = function(Rect,rectNormal){
-		//if ball is moving away from rectangle do nothing
-		var ballV = $V([this.dx,this.dy])
-		if (ballV.dot(rectNormal) <= 0) {
-			//Apply resultant force, project negative ballVec along dx dy and set values respectively
-			console.log("Ori Ball V: " + ballV.elements);
-			ballV = ballV.rotate(Math.PI,$V([1,1]));
-			console.log(this.dx);
-			console.log(this.dy);
-			this.dx = ballV.elements[0];
-			this.dy = ballV.elements[1];
-			console.log(this.dx);
-			console.log(this.dy);
-			console.log("Rotated Ball V: " + ballV.elements);
-		}		
-	};
-
-	//Working with ball Vectors [Not used, just here]
-	Ball.prototype.getVectorVelocity = function(){
-		var magnitude = Math.sqrt(Math.pow(this.dx, 2) + Math.pow(this.dy, 2));
-		var direction = Math.atan2(this.dy,this.dx);
-		return [magnitude,direction];
-	};
+	function pointLineBorderCollisionHandle(circle,pointToSideVec,lineUnitVecNorm) {
+		positionVecDot = pointToSideVec.dot(lineUnitVecNorm);
+		console.log(pointToSideVec.elements);		
+		if (positionVecDot <= 0) {
+			//if ball is moving away from rectangle do nothing
+			var ballV = $V([circle.dx,-1 * circle.dy,0]);
+			var collAxisDot = ballV.dot(lineUnitVecNorm);
+			if (collAxisDot < 0) {
+				//Apply resultant force, project negative ballVec along dx dy and set values respectively
+				//console.log("Ori Ball:" + ballV.elements);
+				//console.log*(collAxisDot);
+				//Sign-age below is because axis are flipped and I'm using offset not PI/2 + offset
+				var bounceVector = lineUnitVecNorm.x(collAxisDot);
+				var resultantVec = bounceVector.rotate(Math.PI,$L([0,0,0],[0,0,1]));
+				ballV = ballV.add(resultantVec).add(resultantVec);
+				//console.log("Current Ball: " + ballV.elements);
+				circle.dx = ballV.elements[0];
+				circle.dy = -1 * ballV.elements[1];
+			}		
+		}
+	}
 
 	//Helper - Solve a quadratic equation
 	//	Ax2 + Bx + C = 0 is the form that is expected and used
@@ -314,32 +312,6 @@
 		root2 = ( -B - Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
 		//console.log('Time missed/past ' + Math.max(root1, root2)); //DEBUG
 		return Math.max(root1, root2);
-	}
-
-	//Takes dx and a dy and returns a vector array
-	// NOT USED
-	function createVector(x,y){
-		var magnitude = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-		var direction =Math.atan2(y/x);
-		return [magnitude,direction];
-	}
-
-	//Takes 2 points [x,y] Returns function describing a line
-	// f(x) form y = mx + b || will make work for when x is the unknown
-	//	x = (1/m)y + -1 *(b/m) [send parameters in this form]
-	function lineEqSolveForY(point1, point2) {
-		var m = ((point2[1] - point1[1]) / (point2[0] - point1[0]));
-		var b = point2[1] - m*point2[0];
-		return function(x){
-			return (m*x + b);
-		};
-	}
-	function lineEqSolveForX(point1,point2){
-				var m = ((point2[1] - point1[1]) / (point2[0] - point1[0]));
-		var b = point2[1] - m*point2[0];
-		return function(y){
-			return ((1/m)*y + (-1*b/m));
-		};
 	}
 
 	//Attach ball factory to the window.  Curious what browsers this doesnt work on (Check)
