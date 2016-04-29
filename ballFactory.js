@@ -283,21 +283,25 @@
 	//handle a collision with the rectangle border
 	//Rect: rectangle Obj | rectNormal: Vector(sylvester API) normal to rectangle side 
 	function pointLineBorderCollisionHandle(circle,pointToSideVec,lineUnitVecNorm) {
-		positionVecDot = pointToSideVec.dot(lineUnitVecNorm);
-		console.log(pointToSideVec.elements);		
+		positionVecDot = pointToSideVec.dot(lineUnitVecNorm);		
 		if (positionVecDot <= 0) {
 			//if ball is moving away from rectangle do nothing
 			var ballV = $V([circle.dx,-1 * circle.dy,0]);
 			var collAxisDot = ballV.dot(lineUnitVecNorm);
 			if (collAxisDot < 0) {
+				//Move ball to edge of circle uses projection NOT physics TODO
+				projVectPos = lineUnitVecNorm.x(positionVecDot);
+				circle.x_curr -= projVectPos.elements[0];
+				circle.y_curr += projVectPos.elements[1];
+				console.log(projVectPos.elements);
 				//Apply resultant force, project negative ballVec along dx dy and set values respectively
-				//console.log("Ori Ball:" + ballV.elements);
-				//console.log*(collAxisDot);
+				console.log("Ori Ball:" + ballV.elements);
+				console.log*(collAxisDot);
 				//Sign-age below is because axis are flipped and I'm using offset not PI/2 + offset
 				var bounceVector = lineUnitVecNorm.x(collAxisDot);
 				var resultantVec = bounceVector.rotate(Math.PI,$L([0,0,0],[0,0,1]));
 				ballV = ballV.add(resultantVec).add(resultantVec);
-				//console.log("Current Ball: " + ballV.elements);
+				console.log("Current Ball: " + ballV.elements);
 				circle.dx = ballV.elements[0];
 				circle.dy = -1 * ballV.elements[1];
 			}		
