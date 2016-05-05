@@ -103,6 +103,12 @@
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#003300';
     ctx.stroke();
+
+    //Draw Coll Vectors
+    ctx.beginPath();
+    ctx.moveTo(this.x_curr,this.y_curr);
+	ctx.lineTo(this.BCV.elements[0], this.BCV.elements[1]);
+	ctx.stroke();
 	};
 
 	//Takes another circle (2d ball) and returns if the circle is colliding with this ball
@@ -288,23 +294,39 @@
 			//if ball is moving away from rectangle do nothing
 			var ballV = $V([circle.dx,-1 * circle.dy,0]);
 			var collAxisDot = ballV.dot(lineUnitVecNorm);
+			var dtPastWall = positionVecDot / collAxisDot;
+			//reposition ball at edge of rect
+			var posCorrection = lineUnitVecNorm.x(positionVecDot);
+			circle.x_curr -= (posCorrection.elements[0]);
+			circle.y_curr +=  (posCorrection.elements[1]);
+			//move ball if bounce is needed
 			if (collAxisDot < 0) {
-				//Move ball to edge of circle uses projection NOT physics TODO
-				projVectPos = lineUnitVecNorm.x(positionVecDot);
-				circle.x_curr -= projVectPos.elements[0];
-				circle.y_curr += projVectPos.elements[1];
-				console.log(projVectPos.elements);
-				//Apply resultant force, project negative ballVec along dx dy and set values respectively
-				console.log("Ori Ball:" + ballV.elements);
-				console.log*(collAxisDot);
-				//Sign-age below is because axis are flipped and I'm using offset not PI/2 + offset
 				var bounceVector = lineUnitVecNorm.x(collAxisDot);
 				var resultantVec = bounceVector.rotate(Math.PI,$L([0,0,0],[0,0,1]));
 				ballV = ballV.add(resultantVec).add(resultantVec);
-				console.log("Current Ball: " + ballV.elements);
+				//START DEBUG drawing collision vector
+				circle.BCV = posCorrection; 
+				//END DEBUG
 				circle.dx = ballV.elements[0];
-				circle.dy = -1 * ballV.elements[1];
-			}		
+				circle.dy +=  ballV.elements[1]; 
+			}
+			// if (collAxisDot < 0) {
+			// 	//Move ball to edge of circle uses projection NOT physics TODO
+			// 	projVectPos = lineUnitVecNorm.x(positionVecDot);
+			// 	circle.x_curr -= projVectPos.elements[0];
+			// 	circle.y_curr += projVectPos.elements[1];
+			// 	console.log(projVectPos.elements);
+			// 	//Apply resultant force, project negative ballVec along dx dy and set values respectively
+			// 	console.log("Ori Ball:" + ballV.elements);
+			// 	console.log*(collAxisDot);
+			// 	//Sign-age below is because axis are flipped and I'm using offset not PI/2 + offset
+			// 	var bounceVector = lineUnitVecNorm.x(collAxisDot);
+			// 	var resultantVec = bounceVector.rotate(Math.PI,$L([0,0,0],[0,0,1]));
+			// 	ballV = ballV.add(resultantVec).add(resultantVec);
+			// 	console.log("Current Ball: " + ballV.elements);
+			// 	circle.dx = ballV.elements[0];
+			// 	circle.dy = -1 * ballV.elements[1];
+			// }		
 		}
 	}
 
