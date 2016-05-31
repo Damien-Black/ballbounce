@@ -11,48 +11,53 @@ var State = {
 State.balls = [];
 State.room = {}; //room in this case is a rectangle obj
 //Create Rectangle matrix
-var point1 = [canvas.width*0.75,canvas.height*0.25];
-var point2 = [canvas.width*0.75,canvas.height*0.75];
-var point3 = [canvas.width*0.25,canvas.height*0.75];
-var point4 = [canvas.width*0.25,canvas.height*0.25];
+var point1 = [canvas.width*0.85,canvas.height*0.15];
+var point2 = [canvas.width*0.85,canvas.height*0.85];
+var point3 = [canvas.width*0.15,canvas.height*0.85];
+var point4 = [canvas.width*0.15,canvas.height*0.15];
 State.room.rectMatrix = $M([point1,point2,point3,point4]);
 State.room.offset = 0;
 var Rect = State.room.rectMatrix; //Short hand for rectangle
 Rect.offset = 0;
 
 //Add balls
-// for (i = 0; i < 25; i++) {
-// 	var newBall = {};
-// 	newBall.x = getRandomInt(0,State.room.width); //DEBUG
-// 	newBall.y = getRandomInt(0,State.room.height); //DEBUG 40 for some reason works correctly, test 70
-// 	newBall.mass = 1;
-// 	newBall.radius = 10;
-// 	newBall.color = "blue";
-// 	newBall.dx = getRandomInt(-25,25);
-// 	newBall.dy = getRandomInt(-25,25);
-// 	//newBall.ddy = 9.8;
-//     State.balls.push(BallFactory(newBall));
-// }
+for (i = 0; i < 3; i++) {
+	var newBall = {};
+	newBall.x = getRandomInt(point3[0],point1[0]);
+	newBall.y = getRandomInt(point1[1],point3[1]);
+	newBall.mass = 1;
+	newBall.radius = 25;
+	newBall.color = "blue";
+	newBall.dx = getRandomInt(-25,25);
+	newBall.dy = getRandomInt(-25,25);
+	//newBall.ddy = 9.8;
+    State.balls.push(BallFactory(newBall));
+}
 
-//TEST for rotating scenario
+//TEST for rotating scenario - Rotational speed (Really just a velocity perpendicular to the box side) needs to be addressed
 
-//Get letter end point position
+//Get letter end point position - [Investigate] Alternativeley make these points attract nearest ball?
 //TODO center letters of any length (right now it centers 3)
+var width = point1[0] - point3[0];
+var height = point3[1] - point1[1];
 var letterPositions = makeLetter("",
-	[Math.min(State.room.x + State.room.width*0.15,State.room.x+ State.room.width*0.85),
-	Math.min(State.room.y + State.room.height*0.3,State.room.y + State.room.height*0.7)]);
+	[point4[0] + width*0.15,
+	point4[1] + (height*0.3)]);
+// var letterPositions = makeLetter("DAB",
+// 	[Math.min(State.room.x + State.room.width*0.15,State.room.x+ State.room.width*0.85),
+// 	Math.min(State.room.y + State.room.height*0.3,State.room.y + State.room.height*0.7)]);
 
 //target balls for making a letter
 // how many balls needed
 // end position of each ball [x's] and [y's]
-//TODO have abetter way of making letters, right now too hard to read
+//TODO have a better way of making letters, right now too hard to read
 if (letterPositions) {
 	for (var i = 0 ; i < letterPositions[0].length; i++) {
 	var currletterX = letterPositions[0][i];
 	for (var j = currletterX.length - 1; j >= 0; j--) {
 		var targetBall = {};
-		targetBall.x = getRandomInt(0,State.room.width);
-		targetBall.y = getRandomInt(0,State.room.height);
+		targetBall.x = getRandomInt(point3[0],point1[0]);
+		targetBall.y = getRandomInt(point1[1],point3[1]);
 		targetBall.mass = 1;
 		targetBall.radius = 10;
 		targetBall.color = "red";
@@ -70,15 +75,15 @@ if (letterPositions) {
 }
 
 //TEST for rotating scenario
-var testBall1 = {};
-testBall1.x = 250;
-testBall1.y = 300;
-testBall1.mass = 1;
-testBall1.radius = 20;
-testBall1.color = "red";
-testBall1.dx = getRandomInt(-30,30);
-testBall1.dy = getRandomInt(-30,30);
-State.balls.push(BallFactory(testBall1));
+// var testBall1 = {};
+// testBall1.x = 250;
+// testBall1.y = 300;
+// testBall1.mass = 1;
+// testBall1.radius = 20;
+// testBall1.color = "red";
+// testBall1.dx = getRandomInt(-30,30);
+// testBall1.dy = getRandomInt(-30,30);
+// State.balls.push(BallFactory(testBall1));
 
 // var testBall2 = {};
 // testBall2.x = 500;

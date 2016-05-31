@@ -5,6 +5,9 @@
 
 	//var t_passed = 0; //DEBUG updating time value overtime
 
+	//Axis of rotation
+	var axis = $L([0,0,0],[0,0,1]);
+
 	//radius will always be a positive number
 	var Ball = function( initparams ){
 		this.x_curr = initparams.x;
@@ -22,8 +25,7 @@
 		this.isSpecial = initparams.isSpecial || false;
 	};
 
-	//Will be exposed to the browser.
-	//Balloptions used are x,y,size,color,radius,mass
+	//Will be exposed to the browser
 	var BallFactory = function (ballinit){
 		//TODO validate init params
 		return new Ball(ballinit);
@@ -63,52 +65,47 @@
 
 	//Drawing a Ball
 	Ball.prototype.DrawBall = function(ctx) {
-    ctx.beginPath();
-    ctx.arc(this.x_curr, this.y_curr, this.radius, 0, 2 * Math.PI, false);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#003300';
-    ctx.stroke();
+	    ctx.beginPath();
+	    ctx.arc(this.x_curr, this.y_curr, this.radius, 0, 2 * Math.PI, false);
+	    ctx.fillStyle = this.color;
+	    ctx.fill();
+	    ctx.lineWidth = 5;
+	    ctx.strokeStyle = '#003300';
+	    ctx.stroke();
 
-    //DEBUG START - drawing "The 4 points" on circle
-    ctx.beginPath();
-    ctx.arc(this.circPoint12[0], this.circPoint12[1], 5, 0, 2 * Math.PI, false);
-    ctx.fillStyle = "red";
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#003300';
-    ctx.stroke();
+	    //DEBUG START - drawing "The 4 points" on circle
+	    // ctx.beginPath();
+	    // ctx.arc(this.circPoint12[0], this.circPoint12[1], 5, 0, 2 * Math.PI, false);
+	    // ctx.fillStyle = "red";
+	    // ctx.fill();
+	    // ctx.lineWidth = 5;
+	    // ctx.strokeStyle = '#003300';
+	    // ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(this.circPoint23[0], this.circPoint23[1], 5, 0, 2 * Math.PI, false);
-    ctx.fillStyle = "blue";
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#003300';
-    ctx.stroke();
+	    // ctx.beginPath();
+	    // ctx.arc(this.circPoint23[0], this.circPoint23[1], 5, 0, 2 * Math.PI, false);
+	    // ctx.fillStyle = "blue";
+	    // ctx.fill();
+	    // ctx.lineWidth = 5;
+	    // ctx.strokeStyle = '#003300';
+	    // ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(this.circPoint34[0], this.circPoint34[1], 5, 0, 2 * Math.PI, false);
-    ctx.fillStyle = "green";
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#003300';
-    ctx.stroke();
+	    // ctx.beginPath();
+	    // ctx.arc(this.circPoint34[0], this.circPoint34[1], 5, 0, 2 * Math.PI, false);
+	    // ctx.fillStyle = "green";
+	    // ctx.fill();
+	    // ctx.lineWidth = 5;
+	    // ctx.strokeStyle = '#003300';
+	    // ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(this.circPoint41[0], this.circPoint41[1], 5, 0, 2 * Math.PI, false);
-    ctx.fillStyle = "gold";
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#003300';
-    ctx.stroke();
-
-    //Draw Coll Vectors
-    ctx.beginPath();
-    ctx.moveTo(this.x_curr,this.y_curr);
-	ctx.lineTo(this.BCV.elements[0], this.BCV.elements[1]);
-	ctx.stroke();
+	    // ctx.beginPath();
+	    // ctx.arc(this.circPoint41[0], this.circPoint41[1], 5, 0, 2 * Math.PI, false);
+	    // ctx.fillStyle = "gold";
+	    // ctx.fill();
+	    // ctx.lineWidth = 5;
+	    // ctx.strokeStyle = '#003300';
+	    // ctx.stroke();
+	    //DEBUG END
 	};
 
 	//Takes another circle (2d ball) and returns if the circle is colliding with this ball
@@ -234,8 +231,8 @@
 
 		var side12 = $V([point2.elements[0] - point1.elements[0], -1 * (point2.elements[1] - point1.elements[1]),0]);  
 		var side23 = $V([point3.elements[0] - point2.elements[0], -1 * (point3.elements[1] - point2.elements[1]),0]); 
-		var side12Normal = side12.rotate(-1 * Math.PI / 2,$L([0,0,0],[0,0,1])); //want normals pointing towards the center of the circle
-		var side23Normal = side23.rotate(-1 * Math.PI / 2,$L([0,0,0],[0,0,1]));
+		var side12Normal = side12.rotate(-1 * Math.PI / 2, axis); //want normals pointing towards the center of the circle
+		var side23Normal = side23.rotate(-1 * Math.PI / 2, axis);
 		//Instead Circle is 4 points (which always collide with a box first) rotate those 4 points that correspod to a side
 		//  Then Project each point onto 1 of 2 possible axis the rectangle can have, result should be >0 for no collision
 		circPoint12 = [this.x_curr + (this.radius * Math.cos(offset)), this.y_curr - (this.radius * Math.sin(offset))];
@@ -250,33 +247,9 @@
 		//for each side find dot product Normal with circle is less than or equal to 0
 		pointLineBorderCollisionHandle(this,circVector12,side12Normal.toUnitVector());
 		pointLineBorderCollisionHandle(this,circVector23,side23Normal.toUnitVector());
-		pointLineBorderCollisionHandle(this,circVector34,side12Normal.rotate(Math.PI,$L([0,0,0],[0,0,1])).toUnitVector()); //Negative of side34 vector
-		pointLineBorderCollisionHandle(this,circVector41,side23Normal.rotate(Math.PI,$L([0,0,0],[0,0,1])).toUnitVector()); //Negative of side41 vector
+		pointLineBorderCollisionHandle(this,circVector34,side12Normal.rotate(Math.PI, axis).toUnitVector()); //Negative of side34 vector
+		pointLineBorderCollisionHandle(this,circVector41,side23Normal.rotate(Math.PI, axis).toUnitVector()); //Negative of side41 vector
 
-		/*
-		dot12 = circVector12.dot(side12Normal);
-		dot23 = circVector23.dot(side23Normal);
-		dot34 = circVector34.dot(side12Normal.rotate(Math.PI,$V([1,1]))); 
-		dot41 = circVector41.dot(side23Normal.rotate(Math.PI,$V([1,1]))); 
-		//	Handle collision if so
-		if (dot12 <= 0) {
-			this.color = "blue";
-			this.RectangleBorderCollisionHandle(Rect,side12Normal);
-		}
-		if (dot23 <= 0) {
-			this.color = "green";
-			this.RectangleBorderCollisionHandle(Rect,side23Normal);
-		}
-		if (dot34 <= 0) {
-			this.color = "Gold"
-			this.RectangleBorderCollisionHandle(Rect,side12Normal.rotate(Math.PI,$V([1,1])));
-		}
-		if (dot41 <= 0) {
-			this.color = "HotPink";
-			this.RectangleBorderCollisionHandle(Rect,side23Normal.rotate(Math.PI,$V([1,1])));
-		}
-		//This can be cleaned up with Helper functions
-		*/
 		//DEBUG stuff start
 		this.circPoint23 = circPoint23;
 		this.circPoint12 = circPoint12;
@@ -289,26 +262,24 @@
 	//handle a collision with the rectangle border
 	//Rect: rectangle Obj | rectNormal: Vector(sylvester API) normal to rectangle side 
 	function pointLineBorderCollisionHandle(circle,pointToSideVec,lineUnitVecNorm) {
-		positionVecDot = pointToSideVec.dot(lineUnitVecNorm);		
-		if (positionVecDot <= 0) {
+		posVecDot = pointToSideVec.dot(lineUnitVecNorm);		
+		if (posVecDot < 0) {
 			//if ball is moving away from rectangle do nothing
 			var ballV = $V([circle.dx,-1 * circle.dy,0]);
-			var collAxisDot = ballV.dot(lineUnitVecNorm);
-			var dtPastWall = positionVecDot / collAxisDot;
+			var collAxisVdot = ballV.dot(lineUnitVecNorm);
+			var dtPastWall = posVecDot / collAxisVdot;
 			//reposition ball at edge of rect
-			var posCorrection = lineUnitVecNorm.x(positionVecDot);
+			var posCorrection = lineUnitVecNorm.x(posVecDot);
 			circle.x_curr -= (posCorrection.elements[0]);
 			circle.y_curr +=  (posCorrection.elements[1]);
-			//move ball if bounce is needed
-			if (collAxisDot < 0) {
-				var bounceVector = lineUnitVecNorm.x(collAxisDot);
-				var resultantVec = bounceVector.rotate(Math.PI,$L([0,0,0],[0,0,1]));
-				ballV = ballV.add(resultantVec).add(resultantVec);
-				//START DEBUG drawing collision vector
-				circle.BCV = posCorrection; 
-				//END DEBUG
-				circle.dx = ballV.elements[0];
-				circle.dy +=  ballV.elements[1]; 
+			//move ball if bounce is needed (dot velocity towards wall)
+			if (collAxisVdot < 0) {
+				var bounceVector = lineUnitVecNorm.x(collAxisVdot * -1);
+				//ballV = ballV.add(bounceVector).add(bounceVector);
+				circle.dx += bounceVector.elements[0] * 2;
+				circle.dy +=  bounceVector.elements[1] * -2;
+				circle.x_curr += ( circle.dx * dtPastWall );
+				circle.y_curr += ( circle.dy * dtPastWall );
 			}
 			// if (collAxisDot < 0) {
 			// 	//Move ball to edge of circle uses projection NOT physics TODO
@@ -336,7 +307,6 @@
 	function quadSolver(A,B,C){
 		root1 = ( -B + Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
 		root2 = ( -B - Math.sqrt(Math.pow(B,2) - 4*A*C) ) / (2*A);
-		//console.log('Time missed/past ' + Math.max(root1, root2)); //DEBUG
 		return Math.max(root1, root2);
 	}
 
