@@ -1,19 +1,16 @@
-//Use Vectors from Sylvester API instead of dx dy
+//TODO: Implement using Vectors from Sylvester API instead of dx dy
 (function(global){
 	// General Notes:
 	//Check that anom functions take the name of properties theyre asssigned to in current JS engine versions
 
-	//var t_passed = 0; //DEBUG updating time value overtime
-
 	//Axis of rotation
 	var axis = $L([0,0,0],[0,0,1]);
 
-	//radius will always be a positive number
 	var Ball = function( initparams ){
-		this.x_curr = initparams.x;
-		this.y_curr = initparams.y;
-		this.color = initparams.color;
-		this.radius = initparams.radius;
+		this.x_curr = initparams.x; //x posisiton of ball center
+		this.y_curr = initparams.y; //y posisiton of ball center
+		this.color = initparams.color; //ball color
+		this.radius = initparams.radius; //Ball radius, always positive (check)
 		this.mass = initparams.mass;
 		//TODO potential energy (Needs to be aware of external object, maybe don't handle it here)
 		this.dx = initparams.dx || 0;
@@ -22,7 +19,7 @@
 		this.ddy = initparams.ddy || 0; //acceleration on ball Y dir (Remember canvas coor (x,-y) not normal cartersian)
 		this.endX = initparams.endX || 0; //target ball X
 		this.endY = initparams.endY || 0; //target ball Y
-		this.isSpecial = initparams.isSpecial || false;
+		this.isSpecial = initparams.isSpecial || false; //So ball endpoint parameters are used
 	};
 
 	//Will be exposed to the browser
@@ -32,12 +29,13 @@
 	};
 
 	//Calculate KE of the ball
+	//	Can be used to determine growing errors in calculations
 	Ball.prototype.KineticEnergy = function(){
 		var KE = 0.5 * this.mass * (Math.pow(this.dx,2) + Math.pow(this.dy,2));
 		return KE;
 	};
 
-	//Simulation engine
+	//Simulation method
 	Ball.prototype.updatePosition = function(dt) {
 		//Cap velocity at 40
 		//this.color = ((this.dx > 40) | (this.dy > 40)) ? "green" : this.color; DEBUG
@@ -53,13 +51,14 @@
 		var colors = ["blue","green","yellow","Gold","HotPink","Lime"];
 		this.color = colors[Math.floor(Math.random() * ((colors.length-1)))]; //get a random color. has to be a better way
 		if (this.mass < 400) {this.mass += 5;}//ball gets more massive as it approaches end goal
+		if (this.radius < 10) {this.radius += 0.1;}
 		//Force balls velocity towards end goal, force position after some time
 		var xDistToGoal = this.endX - this.x_curr;
 		var yDistToGoal = this.endY - this.y_curr;
 		if (totalTime > 70) {
 			if (Math.random() > 0.7) {this.x_curr += (xDistToGoal/3) ; this.y_curr += (yDistToGoal/3);}
 		}
-		this.dx = (xDistToGoal) * velocityMultiplier;
+		this.dx = (xDistToGoal / 10) * velocityMultiplier;
 		this.dy = (yDistToGoal / 10) * velocityMultiplier;
 	};
 
@@ -109,11 +108,10 @@
 	};
 
 	//Takes another circle (2d ball) and returns if the circle is colliding with this ball
-	//	This approach means I'll be doing N! calculations for all collisions in ball system
+	//	This approach means I'll be doing N*N calculations for all collisions in ball system
 	//  How big that system is though can be were I reduce the calulations I do.
 	//		Broad phase: Quad Trees
 	//Returns bool true if balls are colliding
-	//In the future if collision back calc point on ball that collided
 	Ball.prototype.IsCircleCollision = function(circle){
 		//Currently objects touching exactly are considered colliding.
 		var Xdist = Math.abs(this.x_curr - circle.x_curr);
@@ -128,9 +126,8 @@
 	//Shoutout: http://gamedevelopment.tutsplus.com/tutorials/when-worlds-collide-simulating-circle-circle-collisions--gamedev-769
 	//Shoutout: http://gamedev.stackexchange.com/questions/20516/ball-collisions-sticking-together
 	//Shoutout: https://blogs.msdn.microsoft.com/faber/2013/01/09/elastic-collisions-of-balls/
-	//	Saving a brothers life out here
 	//	This portion is cheaty and breaks physics.  In future I need to take dt into account
-	//	And adjust accordingly to the time step
+	//	And adjust accordingly to the time step (how much ball shouldve bounced)
 	Ball.prototype.ResolveCollision = function(circle,dt){
  		//TODO See how far a ball progressed past the collision point and use dt to find dtCollision
  		var centerDistX = this.x_curr - circle.x_curr;
@@ -156,81 +153,14 @@
         }
 	};
 
-	//Take a rect and see if the the ball is colliding with any of botders
-	//Note: Assumes the ball is in the box for this collision detection to be valid
-	//Note:  Coonceptual approach
-	//	I take a ball with radius R in a box.  I assume that there are 4 points on the ball
-	//	which will collide first with any wall of the rectangle.  In a normal rectangle (no spinning/offset)
-	//	The 4 points are the points on the circle which lie tangent to the rectangle's sides -- hope that made sense
-	//		In the future when a rectangle rotates I'll have these 4 points rotate with the rectangle
-	Ball.prototype.RectangleBorderCollision = function (rect,dt) {
-		var rightSideRect = Math.max(rect.x + rect.width,rect.x);
-		var leftSideRect = Math.min(rect.x + rect.width,rect.x);
-		var bottSideRect = Math.max(rect.y + rect.height, rect.y);
-		var topSideRect = Math.min(rect.y + rect.height, rect.y);
-		var collisionStr = []; //Array of strings
-		if (this.x_curr + this.radius >= rightSideRect) {collisionStr.push("right");}
-		if (this.x_curr - this.radius <= leftSideRect) {collisionStr.push("left");}
-		if (this.y_curr + this.radius >= bottSideRect) {collisionStr.push("bottom");}
-		if (this.y_curr - this.radius <= topSideRect) {collisionStr.push("top");}
-		if (collisionStr.length !== 0){
-			//Move ball to surface where it collided with
-			//change dir based on collision "wall" str array
-			//	NOTE: moving ball breaks physics I recalculate to correct for this, but still not ideal
-			var initAxisPos;
-			var dtWall;
-			var dtBounce;
-			var tempV;
-			for (var i = collisionStr.length - 1; i >= 0; i--) {
-				//TODO divide by 0 very possible in dtWall calc
-				//	Currently can cheat by putting box not at 0 in x or y
-				if (collisionStr[i] == "right") {
-					initAxisPos = (-0.5*this.ddx*Math.pow(dt,2)) - (this.dx * dt) + this.x_curr+this.radius;
-					dtWall = (this.ddx) ? quadSolver((this.ddx / 2),this.dx,(initAxisPos - rightSideRect)) : (rightSideRect - initAxisPos) / this.dx;
-					dtBounce = dt - dtWall;
-					tempV = -1 * (this.dx + (this.ddx * dtWall));//velocity right after moment of collision
-					this.x_curr = (rightSideRect - this.radius) + (tempV * dtBounce) + (0.5 * this.ddx * Math.pow(dtBounce,2));
-					this.dx = tempV + (this.ddx * dtBounce);
-				}
-				if (collisionStr[i] == "left") {
-					initAxisPos = (-0.5*this.ddx*Math.pow(dt,2)) - (this.dx * dt) + this.x_curr-this.radius;
-					dtWall = (this.ddx) ? quadSolver((this.ddx / 2),this.dx,(initAxisPos - leftSideRect)) : (leftSideRect - initAxisPos) / this.dx;
-					dtBounce = dt - dtWall;
-					tempV = -1 * (this.dx + (this.ddx * dtWall));//velocity right after moment of collision
-					this.x_curr = (leftSideRect + this.radius) + (tempV * dtBounce) + (0.5 * this.ddx * Math.pow(dtBounce,2));
-					this.dx = tempV + (this.ddx * dtBounce);
-				}
-				if (collisionStr[i] == "top") {
-					initAxisPos = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr-this.radius;
-					dtWall = (this.ddy) ? quadSolver((this.ddy / 2),this.dy,(initAxisPos - topSideRect)) : (topSideRect - initAxisPos) / this.dy;
-					dtBounce = dt - dtWall;
-					tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
-					this.y_curr = (topSideRect + this.radius) + (tempV * dtBounce) + (0.5 * this.ddy * Math.pow(dtBounce,2));
-					this.dy = tempV + (this.ddy * dtBounce);
-				 }
-				if (collisionStr[i] == "bottom") {
-					initAxisPos = (-0.5*this.ddy*Math.pow(dt,2)) - (this.dy * dt) + this.y_curr+this.radius;
-					dtWall = (this.ddy) ? quadSolver((this.ddy / 2),this.dy,(initAxisPos - bottSideRect)) : (bottSideRect - initAxisPos) / this.dy;
-					dtBounce = dt - dtWall;
-					tempV = -1 * (this.dy + (this.ddy * dtWall));//velocity right after moment of collision
-					this.y_curr = (bottSideRect - this.radius) + (tempV * dtBounce) + (0.5 * this.ddy * Math.pow(dtBounce,2)); //reposistion ball + velocity increase in remaining time
-					this.dy = tempV + (this.ddy * dtBounce);
-				}
-				}
-			}
-			//update velocity if no collision in X or Y respectivley TODO imporve this section
-			if (!(collisionStr.includes('right') | collisionStr.includes('right'))) {this.dx += this.ddx * dt;}
-			if (!(collisionStr.includes('top') | collisionStr.includes('bottom'))) {this.dy += this.ddy * dt;}
-	};
-
 	Ball.prototype.RectangleBorderCollision2 = function(Rect,offset,dt){
 		//create vector for both axis of the border, remember with canvas Y is flipped
 		var point1 = Rect.row(1);
 		var point2 = Rect.row(2);
 		var point3 = Rect.row(3);
 
-		var side12 = $V([point2.elements[0] - point1.elements[0], -1 * (point2.elements[1] - point1.elements[1]),0]);  
-		var side23 = $V([point3.elements[0] - point2.elements[0], -1 * (point3.elements[1] - point2.elements[1]),0]); 
+		var side12 = $V([point2.elements[0] - point1.elements[0], -1 * (point2.elements[1] - point1.elements[1]),0]);
+		var side23 = $V([point3.elements[0] - point2.elements[0], -1 * (point3.elements[1] - point2.elements[1]),0]);
 		var side12Normal = side12.rotate(-1 * Math.PI / 2, axis); //want normals pointing towards the center of the circle
 		var side23Normal = side23.rotate(-1 * Math.PI / 2, axis);
 		//Instead Circle is 4 points (which always collide with a box first) rotate those 4 points that correspod to a side
@@ -260,9 +190,9 @@
 	};
 
 	//handle a collision with the rectangle border
-	//Rect: rectangle Obj | rectNormal: Vector(sylvester API) normal to rectangle side 
+	//Rect: rectangle Obj | rectNormal: Vector(sylvester API) normal to rectangle side
 	function pointLineBorderCollisionHandle(circle,pointToSideVec,lineUnitVecNorm) {
-		posVecDot = pointToSideVec.dot(lineUnitVecNorm);		
+		posVecDot = pointToSideVec.dot(lineUnitVecNorm);
 		if (posVecDot < 0) {
 			//if ball is moving away from rectangle do nothing
 			var ballV = $V([circle.dx,-1 * circle.dy,0]);
@@ -281,23 +211,6 @@
 				circle.x_curr += ( circle.dx * dtPastWall );
 				circle.y_curr += ( circle.dy * dtPastWall );
 			}
-			// if (collAxisDot < 0) {
-			// 	//Move ball to edge of circle uses projection NOT physics TODO
-			// 	projVectPos = lineUnitVecNorm.x(positionVecDot);
-			// 	circle.x_curr -= projVectPos.elements[0];
-			// 	circle.y_curr += projVectPos.elements[1];
-			// 	console.log(projVectPos.elements);
-			// 	//Apply resultant force, project negative ballVec along dx dy and set values respectively
-			// 	console.log("Ori Ball:" + ballV.elements);
-			// 	console.log*(collAxisDot);
-			// 	//Sign-age below is because axis are flipped and I'm using offset not PI/2 + offset
-			// 	var bounceVector = lineUnitVecNorm.x(collAxisDot);
-			// 	var resultantVec = bounceVector.rotate(Math.PI,$L([0,0,0],[0,0,1]));
-			// 	ballV = ballV.add(resultantVec).add(resultantVec);
-			// 	console.log("Current Ball: " + ballV.elements);
-			// 	circle.dx = ballV.elements[0];
-			// 	circle.dy = -1 * ballV.elements[1];
-			// }		
 		}
 	}
 

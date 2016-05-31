@@ -21,12 +21,12 @@ var Rect = State.room.rectMatrix; //Short hand for rectangle
 Rect.offset = 0;
 
 //Add balls
-for (i = 0; i < 3; i++) {
+for (i = 0; i < 40; i++) {
 	var newBall = {};
 	newBall.x = getRandomInt(point3[0],point1[0]);
 	newBall.y = getRandomInt(point1[1],point3[1]);
 	newBall.mass = 1;
-	newBall.radius = 25;
+	newBall.radius = 5;
 	newBall.color = "blue";
 	newBall.dx = getRandomInt(-25,25);
 	newBall.dy = getRandomInt(-25,25);
@@ -34,13 +34,11 @@ for (i = 0; i < 3; i++) {
     State.balls.push(BallFactory(newBall));
 }
 
-//TEST for rotating scenario - Rotational speed (Really just a velocity perpendicular to the box side) needs to be addressed
-
 //Get letter end point position - [Investigate] Alternativeley make these points attract nearest ball?
 //TODO center letters of any length (right now it centers 3)
 var width = point1[0] - point3[0];
 var height = point3[1] - point1[1];
-var letterPositions = makeLetter("",
+var letterPositions = makeLetter("DAB",
 	[point4[0] + width*0.15,
 	point4[1] + (height*0.3)]);
 // var letterPositions = makeLetter("DAB",
@@ -59,7 +57,7 @@ if (letterPositions) {
 		targetBall.x = getRandomInt(point3[0],point1[0]);
 		targetBall.y = getRandomInt(point1[1],point3[1]);
 		targetBall.mass = 1;
-		targetBall.radius = 10;
+		targetBall.radius = 5;
 		targetBall.color = "red";
 		targetBall.dx = getRandomInt(-25,25);
 		targetBall.dy = getRandomInt(-25,25);
@@ -73,27 +71,6 @@ if (letterPositions) {
 	console.log('EndY: ' + letterPositions[1][i]);
 }
 }
-
-//TEST for rotating scenario
-// var testBall1 = {};
-// testBall1.x = 250;
-// testBall1.y = 300;
-// testBall1.mass = 1;
-// testBall1.radius = 20;
-// testBall1.color = "red";
-// testBall1.dx = getRandomInt(-30,30);
-// testBall1.dy = getRandomInt(-30,30);
-// State.balls.push(BallFactory(testBall1));
-
-// var testBall2 = {};
-// testBall2.x = 500;
-// testBall2.y = 300;
-// testBall2.mass = 1;
-// testBall2.radius = 20;
-// testBall2.color = "blue";
-// testBall2.dx = -20;
-// testBall2.dy = 0;
-// State.balls.push(BallFactory(testBall2));
 
 
 //Returns [x],[y] values needed to create a letter
@@ -216,7 +193,7 @@ function DrawRect(){
 function loop(){
 	//change State - Simulation engine call for next time point
 	//Move center to origin (0) and rotate using matrix, then move center to original location
-	Rect = RotateRect(Rect, Math.PI / 128);
+	//Rect = RotateRect(Rect, Math.PI / 128);
 	for (i = 0, length = State.balls.length; i < length; i++) {
 	var currBall = State.balls[i];
 	currBall.updatePosition(State.dt);
@@ -234,7 +211,6 @@ function loop(){
     } //Handle ball to ball collisions
 
 	}
-	//Pulse target Balls to end locations
 	//Clear Canvas
 	DrawRect();
 	//Redraw - Redraw all balls
