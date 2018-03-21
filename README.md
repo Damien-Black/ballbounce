@@ -3,7 +3,7 @@ http://mattferraro.github.io/ballbounce/
 http://www.computersaremagic.org/bouncing-balls-part-1/
 
 # Goal 
-> "They bounce!" - Marty 
+> "They bounce!" - Michael Jordan 
 
 To have a bouncing bounce ball and Track energy calculation overtime
   1. get a ball bouncing up and down in a box
